@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
-import { updateSettings } from "@/app/actions/settings"
 
 type CurrencyProps = {
   initialCurrency: string
@@ -31,11 +30,10 @@ export function CurrencyClient({
     setSuccess(false)
     
     startTransition(async () => {
-      await updateSettings({
-        currency,
-        numberFormat,
-        dateFormat,
-        timezone,
+      await fetch('/api/settings/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currency, numberFormat, dateFormat, timezone }),
       })
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)

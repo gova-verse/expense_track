@@ -62,7 +62,7 @@ type RecentTx = {
   id: number
   type: "expense" | "income" | "transfer"
   amount: string
-  date: Date
+  date: string
   description: string | null
   paymentMethod: string | null
   categoryId: number | null

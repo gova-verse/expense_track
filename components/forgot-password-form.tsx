@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { forgotPasswordSchema } from "@/lib/validations"
-import { forgotPassword } from "@/app/actions/auth"
 import { z } from "zod"
 import { useState } from "react"
 import Link from "next/link"
@@ -40,8 +39,12 @@ export function ForgotPasswordForm({
   async function onSubmit(data: z.infer<typeof forgotPasswordSchema>) {
     setError(null)
     setMessage(null)
-    
-    const result = await forgotPassword(data)
+
+    const result = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).then(r => r.json())
     if (result.success && "message" in result) {
       setMessage(result.message)
     } else if (!result.success && "error" in result) {

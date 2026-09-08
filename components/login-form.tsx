@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { loginSchema } from "@/lib/validations"
-import { login, resendVerification } from "@/app/actions/auth"
 import { z } from "zod"
 import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -37,7 +36,7 @@ function LoginFormContent({
   const [requiresVerification, setRequiresVerification] = useState(false)
   const [verificationEmail, setVerificationEmail] = useState<string | null>(null)
   const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent">("idle")
-  
+
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -51,7 +50,12 @@ function LoginFormContent({
     setRequiresVerification(false)
     setResendStatus("idle")
 
-    const result = await login(data)
+    const result = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).then(r => r.json())
+
     if (!result.success) {
       if (result.requiresVerification) {
         setRequiresVerification(true)
@@ -68,7 +72,11 @@ function LoginFormContent({
   async function handleResendVerification() {
     if (!verificationEmail) return
     setResendStatus("sending")
-    await resendVerification(verificationEmail)
+    await fetch('/api/auth/resend-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: verificationEmail }),
+    })
     setResendStatus("sent")
   }
 
@@ -121,7 +129,7 @@ function LoginFormContent({
                   <FieldDescription className="text-destructive text-sm">{form.formState.errors.password.message}</FieldDescription>
                 )}
               </Field>
-              
+
               {error && (
                 <div className="text-sm font-medium text-destructive">{error}</div>
               )}
@@ -137,8 +145,8 @@ function LoginFormContent({
                   {resendStatus === "sending"
                     ? "Sending..."
                     : resendStatus === "sent"
-                    ? "Verification email sent!"
-                    : "Resend verification email"}
+                      ? "Verification email sent!"
+                      : "Resend verification email"}
                 </Button>
               )}
 
@@ -146,9 +154,10 @@ function LoginFormContent({
                 <Button type="submit" disabled={form.formState.isSubmitting}>
                   {form.formState.isSubmitting ? "Logging in..." : "Login"}
                 </Button>
-                <Button variant="outline" type="button">
-                  Login with Google
+                <Button variant="outline" type="button" asChild>
+                  <a href="/api/auth/google">Login with Google</a>
                 </Button>
+
                 <FieldDescription className="text-center">
                   Don&apos;t have an account? <Link href="/signup">Sign up</Link>
                 </FieldDescription>

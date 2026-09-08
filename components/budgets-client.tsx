@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { type getBudgetsWithSpent, deleteBudget } from "@/app/actions/budgets"
+import { useRouter } from "next/navigation"
 import { BudgetForm } from "@/components/budget-form"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -14,10 +14,11 @@ export function BudgetsClient({
   budgets,
   categories,
 }: {
-  budgets: Awaited<ReturnType<typeof getBudgetsWithSpent>>
+  budgets: { id: number; name: string; amount: number; period: string; categoryId: number | null; categoryName: string | null; categoryIcon: string | null; categoryColor: string | null; startDate: string; spent: number; remaining: number; usage: number; status: string; activeFrom: string; activeTo: string }[]
   categories: { id: number; name: string; type: string }[]
 }) {
   const prefs = usePreferences()
+  const router = useRouter()
   const fmt = (val: number) => formatCurrency(val, prefs, { maximumFractionDigits: 0 })
   const [formOpen, setFormOpen] = useState(false)
   const [editingBudget, setEditingBudget] = useState<{ id: number; data: Partial<BudgetInput> } | null>(null)
@@ -28,7 +29,7 @@ export function BudgetsClient({
       data: {
         name: b.name,
         amount: b.amount,
-        period: b.period,
+        period: b.period as "daily" | "weekly" | "monthly",
         categoryId: b.categoryId,
       }
     })
@@ -37,7 +38,8 @@ export function BudgetsClient({
 
   const handleDelete = async (id: number) => {
     if (confirm("Are you sure you want to delete this budget? Transactions will not be deleted.")) {
-      await deleteBudget(id)
+      const res = await fetch(`/api/budgets/${id}`, { method: 'DELETE' }).then(r => r.json())
+      if (res.success) router.refresh()
     }
   }
 

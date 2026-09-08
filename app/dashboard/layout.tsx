@@ -1,5 +1,5 @@
 import { AppSidebar } from "@/components/app-sidebar"
-import { getUserPreferences, getAuthenticatedUser } from "@/app/actions/settings"
+import { getPreferences, getMe } from "@/server/api-client"
 import { PreferencesProvider } from "@/components/preferences-provider"
 import {
   Breadcrumb,
@@ -18,13 +18,18 @@ export const dynamic = 'force-dynamic'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [prefs, user] = await Promise.all([
-    getUserPreferences(),
-    getAuthenticatedUser(),
+    getPreferences(),
+    getMe(),
   ])
   
   return (
     <SidebarProvider>
-      <PreferencesProvider preferences={prefs}>
+      <PreferencesProvider preferences={{
+          currency: prefs.currency || "INR",
+          numberFormat: prefs.numberFormat || "en-IN",
+          dateFormat: prefs.dateFormat || "DD/MM/YYYY",
+          timezone: prefs.timezone || "Asia/Kolkata",
+        }}>
         <AppSidebar user={{ name: user.name || "", email: user.email }} />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2">

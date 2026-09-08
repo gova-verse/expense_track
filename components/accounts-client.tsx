@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription, SheetFooter } from "@/components/ui/sheet"
 import { Input } from "@/components/ui/input"
 import { Field, FieldLabel, FieldError } from "@/components/ui/field"
-import { createAccount, updateAccount, deleteAccount } from "@/app/actions/accounts"
 import { PencilSimple, Trash, Wallet, Bank, CreditCard, Coins, PiggyBank } from "@phosphor-icons/react"
 import { insertAccountSchema } from "@/lib/validations"
 import { usePreferences, formatCurrency } from "@/components/preferences-provider"
@@ -43,6 +43,7 @@ const getAccountTypeLabel = (type: string) => {
 
 export function AccountsClient({ initialAccounts }: { initialAccounts: AccountWithBalance[] }) {
   const prefs = usePreferences()
+  const router = useRouter()
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [editingAcc, setEditingAcc] = useState<AccountWithBalance | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -90,16 +91,26 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: AccountWi
 
     startTransition(async () => {
       if (editingAcc) {
-        const res = await updateAccount(editingAcc.id, payload)
+        const res = await fetch(`/api/accounts/${editingAcc.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).then(r => r.json())
         if (res.success) {
           setIsSheetOpen(false)
+          router.refresh()
         } else {
           setError(res.error || "Failed to update account")
         }
       } else {
-        const res = await createAccount(payload)
+        const res = await fetch('/api/accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).then(r => r.json())
         if (res.success) {
           setIsSheetOpen(false)
+          router.refresh()
         } else {
           setError(res.error || "Failed to create account")
         }
@@ -110,9 +121,11 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: AccountWi
   const handleDelete = (id: number) => {
     if (!window.confirm("Are you sure you want to delete this account? It will fail if there are any transactions associated with it.")) return
     startTransition(async () => {
-      const res = await deleteAccount(id)
+      const res = await fetch(`/api/accounts/${id}`, { method: 'DELETE' }).then(r => r.json())
       if (!res.success) {
         alert(res.error || "Failed to delete account")
+      } else {
+        router.refresh()
       }
     })
   }

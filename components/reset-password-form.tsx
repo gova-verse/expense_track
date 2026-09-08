@@ -19,7 +19,6 @@ import { Input } from "@/components/ui/input"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { resetPasswordSchema } from "@/lib/validations"
-import { resetPassword } from "@/app/actions/auth"
 import { z } from "zod"
 import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -45,7 +44,11 @@ function ResetPasswordContent({
 
   async function onSubmit(data: z.infer<typeof resetPasswordSchema>) {
     setError(null)
-    const result = await resetPassword(data)
+    const result = await fetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).then(r => r.json())
     if (!result.success) {
       setError(result.error || "Failed to reset password")
       return

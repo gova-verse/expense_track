@@ -20,7 +20,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { CaretUpDownIcon, SparkleIcon, UserCircleIcon, CreditCardIcon, BellIcon, SignOutIcon } from "@phosphor-icons/react"
-import { logout } from "@/app/actions/auth"
 import { useRouter } from "next/navigation"
 
 function getInitials(name: string, email: string): string {
@@ -113,7 +112,7 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={async () => {
-              await logout()
+              await fetch('/api/auth/logout', { method: 'POST' })
               router.push("/login")
             }}>
               <SignOutIcon />

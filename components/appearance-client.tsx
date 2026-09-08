@@ -4,7 +4,6 @@ import { useTheme } from "next-themes"
 import { useState, useTransition } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { updateSettings } from "@/app/actions/settings"
 
 export function AppearanceClient({ initialTheme, initialColorTheme }: { initialTheme: string, initialColorTheme: string }) {
   const { setTheme, theme: currentNextTheme } = useTheme()
@@ -15,15 +14,19 @@ export function AppearanceClient({ initialTheme, initialColorTheme }: { initialT
   const handleThemeChange = (newTheme: string) => {
     setSelectedTheme(newTheme)
     setTheme(newTheme) // next-themes handles this instantly
-    
+
     startTransition(async () => {
-      await updateSettings({ theme: newTheme })
+      await fetch('/api/settings/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ theme: newTheme }),
+      })
     })
   }
 
   const handleColorThemeChange = (newColorTheme: string) => {
     setSelectedColorTheme(newColorTheme)
-    
+
     // Instantly update the DOM to prevent lag
     if (newColorTheme === 'default') {
       document.documentElement.removeAttribute('data-theme')
@@ -32,7 +35,11 @@ export function AppearanceClient({ initialTheme, initialColorTheme }: { initialT
     }
 
     startTransition(async () => {
-      await updateSettings({ colorTheme: newColorTheme })
+      await fetch('/api/settings/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ colorTheme: newColorTheme }),
+      })
     })
   }
 

@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { signupSchema } from "@/lib/validations"
-import { signup } from "@/app/actions/auth"
 import { z } from "zod"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -25,7 +24,7 @@ export function SignupForm({
 }: React.ComponentProps<"div">) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
-  
+
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -38,7 +37,11 @@ export function SignupForm({
 
   async function onSubmit(data: z.infer<typeof signupSchema>) {
     setError(null)
-    const result = await signup(data)
+    const result = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).then(r => r.json())
     if (!result.success) {
       setError(result.error || "Failed to sign up")
       return
@@ -82,7 +85,7 @@ export function SignupForm({
                   <FieldDescription className="text-destructive text-sm">{form.formState.errors.email.message}</FieldDescription>
                 )}
                 {!form.formState.errors.email && (
-                   <FieldDescription>
+                  <FieldDescription>
                     We&apos;ll use this to contact you. We will not share your
                     email with anyone else.
                   </FieldDescription>
@@ -111,7 +114,7 @@ export function SignupForm({
                   Must be at least 8 characters long, containing 1 uppercase, 1 lowercase and 1 number.
                 </FieldDescription>
               </Field>
-              
+
               {error && (
                 <div className="text-sm font-medium text-destructive">{error}</div>
               )}
@@ -124,15 +127,9 @@ export function SignupForm({
               <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
                 Or continue with
               </FieldSeparator>
-              <Field className="grid grid-cols-3 gap-4">
-                <Button variant="outline" type="button">
-                  <span className="sr-only">Sign up with Apple</span>
-                </Button>
-                <Button variant="outline" type="button">
-                  <span className="sr-only">Sign up with Google</span>
-                </Button>
-                <Button variant="outline" type="button">
-                  <span className="sr-only">Sign up with Meta</span>
+              <Field>
+                <Button variant="outline" type="button" asChild className="w-full">
+                  <a href="/api/auth/google">Continue with Google</a>
                 </Button>
               </Field>
               <FieldDescription className="text-center">

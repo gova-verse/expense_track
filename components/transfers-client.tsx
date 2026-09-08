@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription, SheetFooter } from "@/components/ui/sheet"
 import { Input } from "@/components/ui/input"
 import { Field, FieldLabel, FieldError } from "@/components/ui/field"
-import { createTransfer, updateTransfer, deleteTransfer } from "@/app/actions/transfers"
 import { PencilSimple, Trash, ArrowRight } from "@phosphor-icons/react"
 import { usePreferences, formatCurrency, formatDate } from "@/components/preferences-provider"
 
@@ -14,14 +14,14 @@ type TransferItem = {
   id: number;
   type: string;
   amount: string;
-  date: Date;
+  date: string;
   description: string | null;
   notes: string | null;
   accountId: number;
   accountName: string;
   destinationAccountId: number;
   destinationAccountName: string;
-  createdAt: Date;
+  createdAt: string;
 }
 
 type Account = {
@@ -33,6 +33,7 @@ type Account = {
 
 export function TransfersClient({ initialTransfers, accounts }: { initialTransfers: TransferItem[], accounts: Account[] }) {
   const prefs = usePreferences()
+  const router = useRouter()
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [editingTransfer, setEditingTransfer] = useState<TransferItem | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -93,16 +94,26 @@ export function TransfersClient({ initialTransfers, accounts }: { initialTransfe
 
     startTransition(async () => {
       if (editingTransfer) {
-        const res = await updateTransfer(editingTransfer.id, payload)
+        const res = await fetch(`/api/transfers/${editingTransfer.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).then(r => r.json())
         if (res.success) {
           setIsSheetOpen(false)
+          router.refresh()
         } else {
           setError(res.error || "Failed to update transfer")
         }
       } else {
-        const res = await createTransfer(payload)
+        const res = await fetch('/api/transfers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).then(r => r.json())
         if (res.success) {
           setIsSheetOpen(false)
+          router.refresh()
         } else {
           setError(res.error || "Failed to create transfer")
         }
@@ -113,9 +124,11 @@ export function TransfersClient({ initialTransfers, accounts }: { initialTransfe
   const handleDelete = (id: number) => {
     if (!window.confirm("Are you sure you want to delete this transfer? Account balances will be updated automatically.")) return
     startTransition(async () => {
-      const res = await deleteTransfer(id)
+      const res = await fetch(`/api/transfers/${id}`, { method: 'DELETE' }).then(r => r.json())
       if (!res.success) {
         alert(res.error || "Failed to delete transfer")
+      } else {
+        router.refresh()
       }
     })
   }

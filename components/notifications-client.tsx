@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { updateNotificationPreferences } from "@/app/actions/settings"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 
@@ -51,7 +50,11 @@ export function NotificationsClient({ preferences }: { preferences: Notification
     setSaving(true)
     setMessage(null)
 
-    const result = await updateNotificationPreferences(updated)
+    const result = await fetch('/api/settings/notifications', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated),
+    }).then(r => r.json())
     setSaving(false)
     if (result.success) {
       setMessage("Preferences saved.")

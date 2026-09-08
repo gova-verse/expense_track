@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { budgetSchema, type BudgetInput } from "@/lib/budget-utils"
-import { createBudget, updateBudget } from "@/app/actions/budgets"
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,6 +33,7 @@ export function BudgetForm({
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const isEditing = !!budgetId
+  const router = useRouter()
 
   const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm({
     resolver: zodResolver(budgetSchema),
@@ -55,12 +56,19 @@ export function BudgetForm({
     setIsSubmitting(true)
     try {
       const parsedData = data as BudgetInput
-      if (isEditing && budgetId) {
-        await updateBudget(budgetId, parsedData)
+      const url = isEditing && budgetId ? `/api/budgets/${budgetId}` : '/api/budgets'
+      const method = isEditing ? 'PUT' : 'POST'
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(parsedData),
+      }).then(r => r.json())
+      if (res.success) {
+        handleSuccess()
+        router.refresh()
       } else {
-        await createBudget(parsedData)
+        alert(res.error || "Failed to save budget")
       }
-      handleSuccess()
     } catch (error) {
       console.error(error)
       alert("Failed to save budget")

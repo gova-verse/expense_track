@@ -1,11 +1,11 @@
 "use client"
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription, SheetFooter } from "@/components/ui/sheet"
 import { Input } from "@/components/ui/input"
 import { Field, FieldLabel, FieldError } from "@/components/ui/field"
-import { createCategory, updateCategory, deleteCategory } from "@/app/actions/categories"
 import { PencilSimple, Trash } from "@phosphor-icons/react"
 import { insertCategorySchema } from "@/lib/validations"
 
@@ -19,6 +19,7 @@ type Category = {
 }
 
 export function CategoryPage({ title, type, categories }: { title: string, type: "expense" | "income", categories: Category[] }) {
+  const router = useRouter()
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -66,16 +67,26 @@ export function CategoryPage({ title, type, categories }: { title: string, type:
 
     startTransition(async () => {
       if (editingCategory) {
-        const res = await updateCategory(editingCategory.id, payload)
+        const res = await fetch(`/api/categories/${editingCategory.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).then(r => r.json())
         if (res.success) {
           setIsSheetOpen(false)
+          router.refresh()
         } else {
           setError(res.error || "Failed to update category")
         }
       } else {
-        const res = await createCategory(payload)
+        const res = await fetch('/api/categories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).then(r => r.json())
         if (res.success) {
           setIsSheetOpen(false)
+          router.refresh()
         } else {
           setError(res.error || "Failed to create category")
         }
@@ -86,9 +97,11 @@ export function CategoryPage({ title, type, categories }: { title: string, type:
   const handleDelete = (id: number) => {
     if (!window.confirm("Are you sure you want to delete this category?")) return
     startTransition(async () => {
-      const res = await deleteCategory(id, type)
+      const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' }).then(r => r.json())
       if (!res.success) {
         alert(res.error || "Failed to delete category")
+      } else {
+        router.refresh()
       }
     })
   }

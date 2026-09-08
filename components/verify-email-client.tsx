@@ -16,7 +16,6 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { verifyEmail, resendVerification } from "@/app/actions/auth"
 import { useSearchParams, useRouter } from "next/navigation"
 import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
@@ -37,10 +36,13 @@ function VerifyEmailContent() {
 
   useEffect(() => {
     if (token && status === "verifying") {
-      verifyEmail(token).then((result) => {
+      fetch('/api/auth/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      }).then(r => r.json()).then((result) => {
         if (result.success) {
           setStatus("success")
-          // Redirect to login after a brief pause
           setTimeout(() => {
             router.push("/login?verified=true")
           }, 2000)
@@ -56,7 +58,11 @@ function VerifyEmailContent() {
     if (!resendEmail) return
     setResendStatus("sending")
     setResendError(null)
-    const result = await resendVerification(resendEmail)
+    const result = await fetch('/api/auth/resend-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: resendEmail }),
+    }).then(r => r.json())
     if (result.success) {
       setResendStatus("sent")
     } else {

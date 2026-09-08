@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useTransition, useMemo } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription, SheetFooter } from "@/components/ui/sheet"
 import { Input } from "@/components/ui/input"
 import { Field, FieldLabel, FieldError } from "@/components/ui/field"
-import { createTransaction, updateTransaction, deleteTransaction } from "@/app/actions/transactions"
 import { PencilSimple, Trash, ArrowRight } from "@phosphor-icons/react"
 import { insertTransactionSchema } from "@/lib/validations"
 import { usePreferences, formatCurrency, formatDate } from "@/components/preferences-provider"
@@ -15,7 +15,7 @@ type TransactionItem = {
   id: number;
   type: "expense" | "income" | "transfer";
   amount: string;
-  date: Date;
+  date: string;
   description: string | null;
   paymentMethod: string | null;
   notes: string | null;
@@ -47,6 +47,7 @@ type Category = {
 
 export function TransactionPage({ initialTransactions, categories, accounts }: { initialTransactions: TransactionItem[], categories: Category[], accounts: Account[] }) {
   const prefs = usePreferences()
+  const router = useRouter()
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [editingTx, setEditingTx] = useState<TransactionItem | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -76,7 +77,7 @@ export function TransactionPage({ initialTransactions, categories, accounts }: {
       if (filterType !== "all" && tx.type !== filterType) return false
       if (filterCategory !== "all" && tx.type !== "transfer" && tx.categoryId?.toString() !== filterCategory) return false
       if (filterMonth) {
-        const txMonth = tx.date.toISOString().slice(0, 7) // YYYY-MM
+        const txMonth = tx.date.slice(0, 7) // YYYY-MM
         if (txMonth !== filterMonth) return false
       }
       return true
@@ -134,16 +135,26 @@ export function TransactionPage({ initialTransactions, categories, accounts }: {
 
     startTransition(async () => {
       if (editingTx) {
-        const res = await updateTransaction(editingTx.id, payload)
+        const res = await fetch(`/api/transactions/${editingTx.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).then(r => r.json())
         if (res.success) {
           setIsSheetOpen(false)
+          router.refresh()
         } else {
           setError(res.error || "Failed to update transaction")
         }
       } else {
-        const res = await createTransaction(payload)
+        const res = await fetch('/api/transactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).then(r => r.json())
         if (res.success) {
           setIsSheetOpen(false)
+          router.refresh()
         } else {
           setError(res.error || "Failed to create transaction")
         }
@@ -154,9 +165,11 @@ export function TransactionPage({ initialTransactions, categories, accounts }: {
   const handleDelete = (id: number) => {
     if (!window.confirm("Are you sure you want to delete this transaction?")) return
     startTransition(async () => {
-      const res = await deleteTransaction(id)
+      const res = await fetch(`/api/transactions/${id}`, { method: 'DELETE' }).then(r => r.json())
       if (!res.success) {
         alert(res.error || "Failed to delete transaction")
+      } else {
+        router.refresh()
       }
     })
   }

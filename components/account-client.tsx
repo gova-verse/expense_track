@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { updateProfileSchema, changePasswordSchema } from "@/lib/validations"
-import { updateProfile, changePassword } from "@/app/actions/settings"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
@@ -45,7 +44,11 @@ export function AccountClient({ user }: { user: AccountUser }) {
   async function onProfileSubmit(data: z.infer<typeof updateProfileSchema>) {
     setProfileError(null)
     setProfileSuccess(false)
-    const result = await updateProfile(data)
+    const result = await fetch('/api/settings/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).then(r => r.json())
     if (result.success) {
       setProfileSuccess(true)
       router.refresh()
@@ -57,7 +60,11 @@ export function AccountClient({ user }: { user: AccountUser }) {
   async function onPasswordSubmit(data: z.infer<typeof changePasswordSchema>) {
     setPasswordError(null)
     setPasswordSuccess(false)
-    const result = await changePassword(data)
+    const result = await fetch('/api/settings/password', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).then(r => r.json())
     if (result.success) {
       setPasswordSuccess(true)
       passwordForm.reset()

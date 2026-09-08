@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic"
 
-import { getCategories } from "@/app/actions/categories"
+import { getCategories } from "@/server/api-client"
 import { CategoryPage } from "@/components/category-page"
 
 export default async function IncomeCategoriesPage() {

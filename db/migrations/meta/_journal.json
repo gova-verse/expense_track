@@ -15,6 +15,20 @@
       "when": 1786913281610,
       "tag": "0001_married_nocturne",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788850436824,
+      "tag": "0002_early_prism",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788855370463,
+      "tag": "0003_living_ghost_rider",
+      "breakpoints": true
     }
   ]
 }

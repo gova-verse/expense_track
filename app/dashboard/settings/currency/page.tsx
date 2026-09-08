@@ -1,15 +1,15 @@
-import { getUserPreferences } from "@/app/actions/settings"
+import { getPreferences } from "@/server/api-client"
 import { CurrencyClient } from "@/components/currency-client"
 
 export default async function CurrencySettingsPage() {
-  const prefs = await getUserPreferences()
-  
+  const prefs = await getPreferences()
+
   return (
-    <CurrencyClient 
-      initialCurrency={prefs.currency}
-      initialNumberFormat={prefs.numberFormat}
-      initialDateFormat={prefs.dateFormat}
-      initialTimezone={prefs.timezone}
+    <CurrencyClient
+      initialCurrency={prefs.currency || "INR"}
+      initialNumberFormat={prefs.numberFormat || "en-IN"}
+      initialDateFormat={prefs.dateFormat || "DD/MM/YYYY"}
+      initialTimezone={prefs.timezone || "Asia/Kolkata"}
     />
   )
 }

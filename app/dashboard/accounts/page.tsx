@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic"
 
-import { getAccountsWithBalance } from "@/app/actions/accounts"
+import { getAccountsWithBalance } from "@/server/api-client"
 import { AccountsClient } from "@/components/accounts-client"
 
 export default async function AccountsRoute() {

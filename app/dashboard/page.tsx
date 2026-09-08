@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import { getFullAnalytics, type DateRange } from "@/lib/analytics"
-import { getRecentTransactions } from "@/app/actions/transactions"
+import { getRecentTransactions } from "@/server/api-client"
 import { DashboardClient } from "@/components/dashboard-client"
 import { verifySession } from "@/lib/auth"
 import { redirect } from "next/navigation"

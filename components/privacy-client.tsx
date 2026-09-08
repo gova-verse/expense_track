@@ -18,12 +18,30 @@ export function PrivacyClient({ dataBlob }: { dataBlob: string }) {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-    
+
     setTimeout(() => setDownloading(false), 1000)
   }
+  const [deleting, setDeleting] = useState(false)
 
-  const handleDelete = () => {
-    alert("Account deletion requires confirmation and re-authentication. This feature is disabled in the demo.")
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      '⚠️ This will permanently delete your account and ALL your data (transactions, accounts, budgets). This cannot be undone.\n\nClick OK to confirm.'
+    )
+    if (!confirmed) return
+
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/settings/account', { method: 'DELETE' })
+      if (res.ok) {
+        window.location.href = '/login'
+      } else {
+        alert('Failed to delete account. Please try again.')
+        setDeleting(false)
+      }
+    } catch {
+      alert('Something went wrong. Please try again.')
+      setDeleting(false)
+    }
   }
 
   return (
@@ -65,8 +83,8 @@ export function PrivacyClient({ dataBlob }: { dataBlob: string }) {
               </p>
             </div>
           </div>
-          <Button variant="destructive" onClick={handleDelete} className="shrink-0">
-            Delete Account
+          <Button variant="destructive" onClick={handleDelete} disabled={deleting} className="shrink-0">
+            {deleting ? 'Deleting...' : 'Delete Account'}
           </Button>
         </div>
       </div>

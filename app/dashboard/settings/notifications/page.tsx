@@ -1,9 +1,9 @@
-import { getUserPreferences } from "@/app/actions/settings"
+import { getPreferences } from "@/server/api-client"
 import { NotificationsClient } from "@/components/notifications-client"
 
 export default async function NotificationsSettingsPage() {
-  const prefs = await getUserPreferences()
-  
+  const prefs = await getPreferences()
+
   return (
     <NotificationsClient preferences={{
       notifySecurityAlerts: prefs.notifySecurityAlerts,

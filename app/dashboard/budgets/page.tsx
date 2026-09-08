@@ -1,13 +1,13 @@
 export const dynamic = "force-dynamic"
 
-import { getBudgetsWithSpent } from "@/app/actions/budgets"
-import { db } from "@/db"
-import { categories } from "@/db/schema"
+import { getBudgets, getAllCategories } from "@/server/api-client"
 import { BudgetsClient } from "@/components/budgets-client"
 
 export default async function BudgetsPage() {
-  const budgets = await getBudgetsWithSpent()
-  const allCategories = await db.select({ id: categories.id, name: categories.name, type: categories.type }).from(categories)
+  const [budgets, allCategories] = await Promise.all([
+    getBudgets(),
+    getAllCategories(),
+  ])
 
   return <BudgetsClient budgets={budgets} categories={allCategories} />
 }

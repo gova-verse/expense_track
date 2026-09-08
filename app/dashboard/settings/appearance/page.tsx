@@ -1,13 +1,13 @@
-import { getUserPreferences } from "@/app/actions/settings"
+import { getPreferences } from "@/server/api-client"
 import { AppearanceClient } from "@/components/appearance-client"
 
 export default async function AppearanceSettingsPage() {
-  const prefs = await getUserPreferences()
+  const prefs = await getPreferences()
   
   return (
     <AppearanceClient 
-      initialTheme={prefs.theme} 
-      initialColorTheme={prefs.colorTheme} 
+      initialTheme={prefs.theme || "system"} 
+      initialColorTheme={prefs.colorTheme || "default"} 
     />
   )
 }
