@@ -45,7 +45,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const periodKey = params.period || "this-month"
   const { current, previous, label } = getPeriods(periodKey)
 
-  const analytics = await getFullAnalytics(current, previous, session.userId)
+  const analytics = await getFullAnalytics(current, previous, session.user.id)
 
   return (
     <ReportsClient

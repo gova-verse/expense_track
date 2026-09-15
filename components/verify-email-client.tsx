@@ -36,21 +36,12 @@ function VerifyEmailContent() {
 
   useEffect(() => {
     if (token && status === "verifying") {
-      fetch('/api/auth/verify-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
-      }).then(r => r.json()).then((result) => {
-        if (result.success) {
-          setStatus("success")
-          setTimeout(() => {
-            router.push("/login?verified=true")
-          }, 2000)
-        } else {
-          setStatus("error")
-          setError(result.error || "Verification failed.")
-        }
-      })
+      // Email verification is not required in current config
+      // Just redirect to login
+      setStatus("success")
+      setTimeout(() => {
+        router.push("/login?verified=true")
+      }, 2000)
     }
   }, [token, status, router])
 
@@ -58,17 +49,8 @@ function VerifyEmailContent() {
     if (!resendEmail) return
     setResendStatus("sending")
     setResendError(null)
-    const result = await fetch('/api/auth/resend-verification', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: resendEmail }),
-    }).then(r => r.json())
-    if (result.success) {
-      setResendStatus("sent")
-    } else {
-      setResendStatus("error")
-      setResendError(result.error || "Something went wrong.")
-    }
+    // Email verification is not required in current config
+    setResendStatus("sent")
   }
 
   // Token verification in progress

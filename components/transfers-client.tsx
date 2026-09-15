@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Field, FieldLabel, FieldError } from "@/components/ui/field"
 import { PencilSimple, Trash, ArrowRight } from "@phosphor-icons/react"
 import { usePreferences, formatCurrency, formatDate } from "@/components/preferences-provider"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 type TransferItem = {
   id: number;
@@ -37,6 +38,8 @@ export function TransfersClient({ initialTransfers, accounts }: { initialTransfe
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [editingTransfer, setEditingTransfer] = useState<TransferItem | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   // Form State
@@ -122,12 +125,19 @@ export function TransfersClient({ initialTransfers, accounts }: { initialTransfe
   }
 
   const handleDelete = (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this transfer? Account balances will be updated automatically.")) return
+    setDeleteId(id)
+    setDeleteError(null)
+  }
+
+  const performDelete = () => {
+    if (!deleteId) return
     startTransition(async () => {
-      const res = await fetch(`/api/transfers/${id}`, { method: 'DELETE' }).then(r => r.json())
+      const res = await fetch(`/api/transfers/${deleteId}`, { method: 'DELETE' }).then(r => r.json())
       if (!res.success) {
-        alert(res.error || "Failed to delete transfer")
+        setDeleteError(res.error || "Failed to delete transfer")
       } else {
+        setDeleteId(null)
+        setDeleteError(null)
         router.refresh()
       }
     })
@@ -260,6 +270,21 @@ export function TransfersClient({ initialTransfers, accounts }: { initialTransfe
           ))}
         </div>
       )}
+
+      <ConfirmDialog 
+        open={deleteId !== null} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteId(null)
+            setDeleteError(null)
+          }
+        }}
+        title="Delete Transfer"
+        description="Are you sure you want to delete this transfer? Account balances will be updated automatically."
+        onConfirm={performDelete}
+        isPending={isPending}
+        error={deleteError}
+      />
     </div>
   )
 }

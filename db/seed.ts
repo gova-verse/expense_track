@@ -1,4 +1,5 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { eq } from 'drizzle-orm';
 import { Pool } from 'pg';
 import * as schema from './schema';
 import * as dotenv from 'dotenv';
@@ -42,15 +43,13 @@ async function seed() {
     process.exit(1);
   }
 
-  console.log('Checking existing categories...');
-  const existing = await db.select().from(schema.categories).limit(1);
-  
-  if (existing.length === 0) {
-    console.log('Seeding default categories...');
+  console.log('Seeding default categories...');
+  try {
+    await db.delete(schema.categories).where(eq(schema.categories.isDefault, true));
     await db.insert(schema.categories).values(defaultCategories);
     console.log('Seeding done.');
-  } else {
-    console.log('Categories already exist, skipping seed.');
+  } catch (e) {
+    console.log('Failed to seed categories. You may need to truncate the table first if foreign keys exist.', e);
   }
   process.exit(0);
 }

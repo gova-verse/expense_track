@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { ShieldCheck, Download, Trash } from "@phosphor-icons/react"
+import { Download } from "@phosphor-icons/react"
 import { useState } from "react"
 
 export function PrivacyClient({ dataBlob }: { dataBlob: string }) {
@@ -20,28 +20,6 @@ export function PrivacyClient({ dataBlob }: { dataBlob: string }) {
     URL.revokeObjectURL(url)
 
     setTimeout(() => setDownloading(false), 1000)
-  }
-  const [deleting, setDeleting] = useState(false)
-
-  const handleDelete = async () => {
-    const confirmed = window.confirm(
-      '⚠️ This will permanently delete your account and ALL your data (transactions, accounts, budgets). This cannot be undone.\n\nClick OK to confirm.'
-    )
-    if (!confirmed) return
-
-    setDeleting(true)
-    try {
-      const res = await fetch('/api/settings/account', { method: 'DELETE' })
-      if (res.ok) {
-        window.location.href = '/login'
-      } else {
-        alert('Failed to delete account. Please try again.')
-        setDeleting(false)
-      }
-    } catch {
-      alert('Something went wrong. Please try again.')
-      setDeleting(false)
-    }
   }
 
   return (
@@ -68,23 +46,6 @@ export function PrivacyClient({ dataBlob }: { dataBlob: string }) {
           </div>
           <Button onClick={handleDownload} disabled={downloading} className="shrink-0">
             {downloading ? "Preparing..." : "Request Data Export"}
-          </Button>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between p-4 border rounded-lg border-red-100 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10">
-          <div className="flex gap-4">
-            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full self-start">
-              <Trash className="w-6 h-6 text-red-600 dark:text-red-500" />
-            </div>
-            <div>
-              <h4 className="font-medium text-red-600 dark:text-red-500">Delete Account</h4>
-              <p className="text-sm text-muted-foreground mt-1 max-w-md">
-                Permanently delete your account and all associated data. This action cannot be undone.
-              </p>
-            </div>
-          </div>
-          <Button variant="destructive" onClick={handleDelete} disabled={deleting} className="shrink-0">
-            {deleting ? 'Deleting...' : 'Delete Account'}
           </Button>
         </div>
       </div>

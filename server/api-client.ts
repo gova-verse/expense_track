@@ -2,8 +2,8 @@
  * Server-side API client for fetching data from Hono endpoints within
  * Next.js Server Components and page.tsx files.
  *
- * It reads the session cookie from next/headers and forwards it with
- * every request so Hono's auth middleware can verify the session.
+ * It reads the Better Auth session cookies from next/headers and forwards
+ * them with every request so Hono's auth middleware can verify the session.
  */
 import { cookies } from 'next/headers'
 
@@ -11,11 +11,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
 async function apiFetch<T>(path: string): Promise<T> {
   const cookieStore = await cookies()
-  const sessionCookie = cookieStore.get('session')?.value
+  const allCookies = cookieStore.getAll()
+  const cookieHeader = allCookies.map(c => `${c.name}=${c.value}`).join('; ')
 
   const res = await fetch(`${BASE_URL}/api${path}`, {
     headers: {
-      Cookie: sessionCookie ? `session=${sessionCookie}` : '',
+      Cookie: cookieHeader,
     },
     cache: 'no-store',
   })
@@ -38,13 +39,11 @@ export type TransactionItem = {
   paymentMethod: string | null
   notes: string | null
   categoryId: number | null
-  categoryName: string | null
-  categoryIcon: string | null
-  categoryColor: string | null
+  category: { name: string; icon: string | null; color: string | null } | null
   accountId: number | null
-  accountName: string | null
+  account: { name: string; type: string } | null
   destinationAccountId: number | null
-  destinationAccountName: string | null
+  destinationAccount: { name: string } | null
 }
 
 export function getTransactions() {
@@ -103,9 +102,9 @@ export type Transfer = {
   description: string | null
   notes: string | null
   accountId: number
-  accountName: string
+  account: { name: string; type: string } | null
   destinationAccountId: number
-  destinationAccountName: string
+  destinationAccount: { name: string; type: string } | null
   createdAt: string
 }
 
@@ -140,7 +139,7 @@ export function getBudgets() {
 // ── Settings / User ───────────────────────────────────────────────
 
 export type UserInfo = {
-  id: number
+  id: string
   name: string | null
   email: string
   emailVerifiedAt: string | null
@@ -149,7 +148,7 @@ export type UserInfo = {
 
 export type UserPreferences = {
   id: number
-  userId: number
+  userId: string
   theme: string | null
   colorTheme: string | null
   currency: string | null

@@ -1,24 +1,17 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { db } from '@/db'
-import { userPreferences, users, authTokens, budgets, transactions, accounts, categories } from '@/db/schema'
+import { userPreferences, user, budgets, transactions, accounts, categories, session, account } from '@/db/schema'
 import { deleteCookie } from 'hono/cookie'
 
 import { eq } from 'drizzle-orm'
-import { authMiddleware } from '../middleware/auth'
 import {
   updateProfileSchema,
-  changePasswordSchema,
   notificationPreferencesSchema,
 } from '@/lib/validations'
-import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 
-type Variables = { userId: number }
-
-const app = new Hono<{ Variables: Variables }>()
-
-app.use('*', authMiddleware)
+const app = new Hono<{ Variables: { user: any } }>()
 
 const settingsSchema = z.object({
   theme: z.string().optional(),
@@ -30,7 +23,7 @@ const settingsSchema = z.object({
 })
 
 // Helper: get or create preferences for the current user
-async function getOrCreatePreferences(userId: number) {
+async function getOrCreatePreferences(userId: string) {
   let prefs = await db
     .select()
     .from(userPreferences)
@@ -58,18 +51,19 @@ async function getOrCreatePreferences(userId: number) {
 
 // GET /api/settings/me  — authenticated user info
 app.get('/me', async (c) => {
-  const userId = c.get('userId')
+  const cUser = c.get('user') as any
+  const userId = cUser.id
 
   const result = await db
     .select({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      emailVerifiedAt: users.emailVerifiedAt,
-      createdAt: users.createdAt,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      emailVerifiedAt: user.emailVerified,
+      createdAt: user.createdAt,
     })
-    .from(users)
-    .where(eq(users.id, userId))
+    .from(user)
+    .where(eq(user.id, userId))
     .limit(1)
 
   if (result.length === 0) return c.json({ error: 'User not found' }, 404)
@@ -78,14 +72,16 @@ app.get('/me', async (c) => {
 
 // GET /api/settings/preferences
 app.get('/preferences', async (c) => {
-  const userId = c.get('userId')
+  const cUser = c.get('user') as any
+  const userId = cUser.id
   const prefs = await getOrCreatePreferences(userId)
   return c.json(prefs)
 })
 
 // PATCH /api/settings/preferences
 app.patch('/preferences', zValidator('json', settingsSchema), async (c) => {
-  const userId = c.get('userId')
+  const cUser = c.get('user') as any
+  const userId = cUser.id
   const body = c.req.valid('json')
 
   const prefs = await getOrCreatePreferences(userId)
@@ -100,36 +96,20 @@ app.patch('/preferences', zValidator('json', settingsSchema), async (c) => {
 
 // PATCH /api/settings/profile
 app.patch('/profile', zValidator('json', updateProfileSchema), async (c) => {
-  const userId = c.get('userId')
+  const cUser = c.get('user') as any
+  const userId = cUser.id
   const { name } = c.req.valid('json')
 
-  await db.update(users).set({ name, updatedAt: new Date() }).where(eq(users.id, userId))
+  await db.update(user).set({ name, updatedAt: new Date() }).where(eq(user.id, userId))
 
   return c.json({ success: true })
 })
 
 // POST /api/settings/change-password
-app.post('/change-password', zValidator('json', changePasswordSchema), async (c) => {
-  const userId = c.get('userId')
-  const { currentPassword, newPassword } = c.req.valid('json')
-
-  const userResult = await db.select().from(users).where(eq(users.id, userId)).limit(1)
-  if (userResult.length === 0 || !userResult[0].password) {
-    return c.json({ success: false, error: 'Something went wrong. Please try again.' }, 500)
-  }
-
-  const isValid = await bcrypt.compare(currentPassword, userResult[0].password)
-  if (!isValid) {
-    return c.json({ success: false, error: 'Current password is incorrect.' }, 400)
-  }
-
-  const hashedPassword = await bcrypt.hash(newPassword, 10)
-  await db
-    .update(users)
-    .set({ password: hashedPassword, updatedAt: new Date() })
-    .where(eq(users.id, userId))
-
-  return c.json({ success: true })
+// With better-auth, password management should ideally be done through authClient.changePassword
+// We leave this returning an error instructing the client to use Better Auth.
+app.post('/change-password', async (c) => {
+  return c.json({ success: false, error: 'Password changes are now managed by Better Auth. Please update the client to use authClient.changePassword().' }, 400)
 })
 
 // PATCH /api/settings/notifications
@@ -137,7 +117,8 @@ app.patch(
   '/notifications',
   zValidator('json', notificationPreferencesSchema),
   async (c) => {
-    const userId = c.get('userId')
+    const cUser = c.get('user') as any
+    const userId = cUser.id
     const body = c.req.valid('json')
 
     const prefs = await getOrCreatePreferences(userId)
@@ -150,20 +131,25 @@ app.patch(
     return c.json({ success: true })
   }
 )
-//delete api/settings/account-permanently delete the user,s account and all data
+
+// DELETE /api/settings/account - permanently delete the user's account and all data
 app.delete('/account', async (c) => {
-  const userId = c.get('userId')
+  const cUser = c.get('user') as any
+  const userId = cUser.id
 
   // Delete in order to respect foreign key constraints
   await db.delete(userPreferences).where(eq(userPreferences.userId, userId))
-  await db.delete(authTokens).where(eq(authTokens.userId, userId))
   await db.delete(budgets).where(eq(budgets.userId, userId))
   await db.delete(transactions).where(eq(transactions.userId, userId))
   await db.delete(accounts).where(eq(accounts.userId, userId))
   await db.delete(categories).where(eq(categories.userId, userId))
-  await db.delete(users).where(eq(users.id, userId))
   
-  deleteCookie(c, 'session', { path: '/' })
+  // Delete Better Auth specific tables for the user
+  await db.delete(session).where(eq(session.userId, userId))
+  await db.delete(account).where(eq(account.userId, userId))
+  
+  await db.delete(user).where(eq(user.id, userId))
+  
   return c.json({ success: true })
 })
 

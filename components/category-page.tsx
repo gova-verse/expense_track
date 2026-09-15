@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Field, FieldLabel, FieldError } from "@/components/ui/field"
 import { PencilSimple, Trash } from "@phosphor-icons/react"
 import { insertCategorySchema } from "@/lib/validations"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 type Category = {
   id: number;
@@ -23,6 +24,8 @@ export function CategoryPage({ title, type, categories }: { title: string, type:
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   
   // Form State
@@ -95,12 +98,19 @@ export function CategoryPage({ title, type, categories }: { title: string, type:
   }
 
   const handleDelete = (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this category?")) return
+    setDeleteId(id)
+    setDeleteError(null)
+  }
+
+  const performDelete = () => {
+    if (!deleteId) return
     startTransition(async () => {
-      const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' }).then(r => r.json())
+      const res = await fetch(`/api/categories/${deleteId}`, { method: 'DELETE' }).then(r => r.json())
       if (!res.success) {
-        alert(res.error || "Failed to delete category")
+        setDeleteError(res.error || "Failed to delete category")
       } else {
+        setDeleteId(null)
+        setDeleteError(null)
         router.refresh()
       }
     })
@@ -176,6 +186,21 @@ export function CategoryPage({ title, type, categories }: { title: string, type:
           ))}
         </div>
       )}
+
+      <ConfirmDialog 
+        open={deleteId !== null} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteId(null)
+            setDeleteError(null)
+          }
+        }}
+        title="Delete Category"
+        description="Are you sure you want to delete this category? This action cannot be undone."
+        onConfirm={performDelete}
+        isPending={isPending}
+        error={deleteError}
+      />
     </div>
   )
 }

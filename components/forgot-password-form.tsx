@@ -21,6 +21,7 @@ import { forgotPasswordSchema } from "@/lib/validations"
 import { z } from "zod"
 import { useState } from "react"
 import Link from "next/link"
+import { authClient } from "@/lib/auth-client"
 
 export function ForgotPasswordForm({
   className,
@@ -40,15 +41,15 @@ export function ForgotPasswordForm({
     setError(null)
     setMessage(null)
 
-    const result = await fetch('/api/auth/forgot-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    }).then(r => r.json())
-    if (result.success && "message" in result) {
-      setMessage(result.message)
-    } else if (!result.success && "error" in result) {
-      setError(result.error)
+    const { error: authError } = await authClient.forgetPassword({
+      email: data.email,
+      redirectTo: "/reset-password",
+    })
+
+    if (authError) {
+      setError(authError.message || "Failed to send reset link")
+    } else {
+      setMessage("If an account exists for this email, you'll receive a password reset link shortly.")
     }
   }
 

@@ -13,10 +13,17 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { verifySession } from "@/lib/auth"
+import { redirect } from "next/navigation"
 
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const session = await verifySession()
+  if (!session) {
+    redirect("/login")
+  }
+
   const [prefs, user] = await Promise.all([
     getPreferences(),
     getMe(),

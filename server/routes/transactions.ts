@@ -2,87 +2,56 @@ import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { db } from '@/db'
 import { transactions, categories, accounts } from '@/db/schema'
-import { eq, desc, sql, and, or } from 'drizzle-orm'
+import { eq, desc, and, or, sql } from 'drizzle-orm'
 import { insertTransactionSchema, updateTransactionSchema } from '@/lib/validations'
-import { authMiddleware } from '../middleware/auth'
 import { checkSufficientBalance, insufficientBalanceError } from '../lib/balance'
-import { z } from 'zod'
 
-type Variables = { userId: number }
-
-const app = new Hono<{ Variables: Variables }>()
-
-// Apply auth to all routes
-app.use('*', authMiddleware)
+const app = new Hono<{ Variables: { user: any } }>()
 
 // GET /api/transactions
 app.get('/', async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
 
-  const data = await db.execute(sql`
-    SELECT 
-      t.id,
-      t.type,
-      t.amount,
-      t.date,
-      t.description,
-      t.payment_method as "paymentMethod",
-      t.notes,
-      t.category_id as "categoryId",
-      c.name as "categoryName",
-      c.icon as "categoryIcon",
-      c.color as "categoryColor",
-      t.account_id as "accountId",
-      sa.name as "accountName",
-      t.destination_account_id as "destinationAccountId",
-      da.name as "destinationAccountName"
-    FROM transactions t
-    LEFT JOIN categories c ON t.category_id = c.id
-    LEFT JOIN accounts sa ON t.account_id = sa.id
-    LEFT JOIN accounts da ON t.destination_account_id = da.id
-    WHERE t.user_id = ${userId}
-    ORDER BY t.date DESC, t.created_at DESC
-  `)
+  const data = await db.query.transactions.findMany({
+    where: eq(transactions.userId, userId),
+    with: {
+      category: { columns: { name: true, icon: true, color: true } },
+      account: { columns: { name: true, type: true } },
+      destinationAccount: { columns: { name: true } },
+    },
+    orderBy: [desc(transactions.date), desc(transactions.createdAt)],
+  })
 
-  return c.json(data.rows)
+  // Format data to match old shape if necessary, or let frontend handle the nested objects.
+  // Phase 5 introduces Shared Types, so frontend will expect nested `category` and `account` objects instead of flattened ones.
+  return c.json(data)
 })
 
 // GET /api/transactions/recent?limit=5
 app.get('/recent', async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
   const limit = Number(c.req.query('limit') ?? '5')
 
-  const data = await db.execute(sql`
-    SELECT 
-      t.id,
-      t.type,
-      t.amount,
-      t.date,
-      t.description,
-      t.payment_method as "paymentMethod",
-      t.category_id as "categoryId",
-      c.name as "categoryName",
-      c.icon as "categoryIcon",
-      c.color as "categoryColor",
-      t.account_id as "accountId",
-      sa.name as "accountName",
-      t.destination_account_id as "destinationAccountId",
-      da.name as "destinationAccountName"
-    FROM transactions t
-    LEFT JOIN categories c ON t.category_id = c.id
-    LEFT JOIN accounts sa ON t.account_id = sa.id
-    LEFT JOIN accounts da ON t.destination_account_id = da.id
-    WHERE t.user_id = ${userId}
-    ORDER BY t.date DESC, t.created_at DESC
-    LIMIT ${limit}
-  `)
+  const data = await db.query.transactions.findMany({
+    where: eq(transactions.userId, userId),
+    with: {
+      category: { columns: { name: true, icon: true, color: true } },
+      account: { columns: { name: true, type: true } },
+      destinationAccount: { columns: { name: true } },
+    },
+    orderBy: [desc(transactions.date), desc(transactions.createdAt)],
+    limit: limit,
+  })
 
-  return c.json(data.rows)
+  return c.json(data)
 })
 
 // POST /api/transactions
 app.post('/', zValidator('json', insertTransactionSchema), async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
   const body = c.req.valid('json')
 
   const { type, amount, date, description, categoryId, accountId, destinationAccountId, paymentMethod, notes } = body
@@ -134,7 +103,8 @@ app.post('/', zValidator('json', insertTransactionSchema), async (c) => {
 
 // PUT /api/transactions/:id
 app.put('/:id', zValidator('json', updateTransactionSchema), async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
   const id = Number(c.req.param('id'))
   const body = c.req.valid('json')
 
@@ -172,10 +142,8 @@ app.put('/:id', zValidator('json', updateTransactionSchema), async (c) => {
   const finalAmount = body.amount !== undefined ? body.amount : parseFloat(existingTx[0].amount)
 
   if (finalType === 'expense' && finalAccountId) {
-    // If the account is the same, add back old amount to get true available balance
     let adjustedAmount = finalAmount
     if (existingTx[0].accountId === finalAccountId && existingTx[0].type === 'expense') {
-      // The old expense is already deducted from the balance, so we only need to check the delta
       const oldAmount = parseFloat(existingTx[0].amount)
       adjustedAmount = Math.max(0, finalAmount - oldAmount)
     }
@@ -202,7 +170,8 @@ app.put('/:id', zValidator('json', updateTransactionSchema), async (c) => {
 
 // DELETE /api/transactions/:id
 app.delete('/:id', async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
   const id = Number(c.req.param('id'))
 
   const existingTx = await db

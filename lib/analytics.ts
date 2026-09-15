@@ -15,7 +15,7 @@ function safeNum(val: unknown): number {
 }
 
 // 1. Core aggregation query for a specific period
-export async function getPeriodAggregations(period: DateRange, userId: number) {
+export async function getPeriodAggregations(period: DateRange, userId: string) {
   // Aggregate by type
   const typeAggs = await db.select({
     type: transactions.type,
@@ -65,7 +65,7 @@ export async function getPeriodAggregations(period: DateRange, userId: number) {
 }
 
 // 2. Category Aggregations
-export async function getCategoryAggregations(period: DateRange, type: "expense" | "income", userId: number) {
+export async function getCategoryAggregations(period: DateRange, type: "expense" | "income", userId: string) {
   const catAggs = await db.select({
     categoryId: transactions.categoryId,
     categoryName: categories.name,
@@ -126,7 +126,7 @@ export function calculateTrend(current: number, previous: number): number {
 }
 
 // 4. Comprehensive Full Analytics Fetcher (combines current and previous period)
-export async function getFullAnalytics(currentPeriod: DateRange, previousPeriod: DateRange, userId: number) {
+export async function getFullAnalytics(currentPeriod: DateRange, previousPeriod: DateRange, userId: string) {
   const currentOverall = await getPeriodAggregations(currentPeriod, userId);
   const previousOverall = await getPeriodAggregations(previousPeriod, userId);
 

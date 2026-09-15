@@ -19,8 +19,9 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { CaretUpDownIcon, SparkleIcon, UserCircleIcon, CreditCardIcon, BellIcon, SignOutIcon } from "@phosphor-icons/react"
+import { ChevronsUpDown, Sparkles, CircleUser, CreditCard, Bell, LogOut } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { authClient } from "@/lib/auth-client"
 
 function getInitials(name: string, email: string): string {
   if (name && name.trim().length > 0) {
@@ -68,7 +69,7 @@ export function NavUser({
                 <span className="truncate font-medium">{displayName}</span>
                 <span className="truncate text-xs">{user.email}</span>
               </div>
-              <CaretUpDownIcon className="ml-auto size-4" />
+              <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -91,31 +92,31 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => router.push("/dashboard/upgrade")}>
-                <SparkleIcon />
+                <Sparkles />
                 Upgrade to Pro
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => router.push("/dashboard/settings/account")}>
-                <UserCircleIcon />
+                <CircleUser />
                 Account
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push("/dashboard/settings/billing")}>
-                <CreditCardIcon />
+                <CreditCard />
                 Billing
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push("/dashboard/settings/notifications")}>
-                <BellIcon />
+                <Bell />
                 Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={async () => {
-              await fetch('/api/auth/logout', { method: 'POST' })
+              await authClient.signOut()
               router.push("/login")
             }}>
-              <SignOutIcon />
+              <LogOut />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

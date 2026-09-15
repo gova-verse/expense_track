@@ -1,54 +1,48 @@
-import "server-only"
-import { SignJWT, jwtVerify } from "jose"
-import { cookies } from "next/headers"
+import { betterAuth } from "better-auth"
+import { drizzleAdapter } from "better-auth/adapters/drizzle"
+import { db } from "@/db"
+import { sendPasswordResetEmail } from "@/lib/email"
+import { headers } from "next/headers"
 
-const secretKey = process.env.JWT_SECRET || "default_super_secret_key_change_me_in_prod"
-const key = new TextEncoder().encode(secretKey)
+export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+  database: drizzleAdapter(db, { provider: "pg" }),
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: false,
+    sendResetPassword: async ({ user, url, token }) => {
+      await sendPasswordResetEmail(user.email, user.name, token)
+    },
+  },
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24,      // refresh daily
+  },
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    },
+  },
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
+      requireLocalEmailVerified: false,
+    },
+  },
+})
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function encrypt(payload: any) {
-  return await new SignJWT(payload)
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .sign(key)
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function decrypt(input: string): Promise<any> {
-  const { payload } = await jwtVerify(input, key, {
-    algorithms: ["HS256"],
-  })
-  return payload
-}
-
-export async function createSession(userId: number) {
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-  const session = await encrypt({ userId, expiresAt })
-
-  const cookieStore = await cookies()
-  cookieStore.set("session", session, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    expires: expiresAt,
-    sameSite: "lax",
-    path: "/",
-  })
-}
-
-export async function deleteSession() {
-  const cookieStore = await cookies()
-  cookieStore.delete("session")
-}
-
+/**
+ * Verify the current session in Server Components.
+ * Returns the session object if authenticated, or null if not.
+ */
 export async function verifySession() {
-  const cookieStore = await cookies()
-  const cookie = cookieStore.get("session")?.value
-  const session = cookie ? await decrypt(cookie).catch(() => null) : null
-
-  if (!session?.userId) {
-    return null
-  }
-
-  return { isAuth: true, userId: session.userId as number }
+  const reqHeaders = await headers()
+  const session = await auth.api.getSession({
+    headers: reqHeaders,
+  })
+  console.log("verifySession called. Headers cookies:", reqHeaders.get("cookie"), "Session returned:", session?.user?.email)
+  return session
 }
+

@@ -22,6 +22,7 @@ import { z } from "zod"
 import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { authClient } from "@/lib/auth-client"
 
 function LoginFormContent({
   className,
@@ -45,25 +46,18 @@ function LoginFormContent({
     },
   })
 
-  async function onSubmit(data: z.infer<typeof loginSchema>) {
+  async function onSubmit(formData: z.infer<typeof loginSchema>) {
     setError(null)
     setRequiresVerification(false)
     setResendStatus("idle")
 
-    const result = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    }).then(r => r.json())
+    const { error: authError } = await authClient.signIn.email({
+      email: formData.email,
+      password: formData.password,
+    })
 
-    if (!result.success) {
-      if (result.requiresVerification) {
-        setRequiresVerification(true)
-        setVerificationEmail(result.email || data.email)
-        setError(result.error || "Please verify your email before signing in.")
-      } else {
-        setError(result.error || "Failed to login")
-      }
+    if (authError) {
+      setError(authError.message || "Failed to login")
       return
     }
     router.push("/dashboard")
@@ -155,7 +149,7 @@ function LoginFormContent({
                   {form.formState.isSubmitting ? "Logging in..." : "Login"}
                 </Button>
                 <Button variant="outline" type="button" asChild>
-                  <a href="/api/auth/google">Login with Google</a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); authClient.signIn.social({ provider: 'google' }) }}>Login with Google</a>
                 </Button>
 
                 <FieldDescription className="text-center">

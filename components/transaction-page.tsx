@@ -10,6 +10,8 @@ import { Field, FieldLabel, FieldError } from "@/components/ui/field"
 import { PencilSimple, Trash, ArrowRight } from "@phosphor-icons/react"
 import { insertTransactionSchema } from "@/lib/validations"
 import { usePreferences, formatCurrency, formatDate } from "@/components/preferences-provider"
+import { revalidateDashboard } from "@/lib/actions"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 type TransactionItem = {
   id: number;
@@ -51,6 +53,8 @@ export function TransactionPage({ initialTransactions, categories, accounts }: {
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [editingTx, setEditingTx] = useState<TransactionItem | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   
   // Filters
@@ -142,6 +146,7 @@ export function TransactionPage({ initialTransactions, categories, accounts }: {
         }).then(r => r.json())
         if (res.success) {
           setIsSheetOpen(false)
+          await revalidateDashboard()
           router.refresh()
         } else {
           setError(res.error || "Failed to update transaction")
@@ -154,6 +159,7 @@ export function TransactionPage({ initialTransactions, categories, accounts }: {
         }).then(r => r.json())
         if (res.success) {
           setIsSheetOpen(false)
+          await revalidateDashboard()
           router.refresh()
         } else {
           setError(res.error || "Failed to create transaction")
@@ -163,12 +169,20 @@ export function TransactionPage({ initialTransactions, categories, accounts }: {
   }
 
   const handleDelete = (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this transaction?")) return
+    setDeleteId(id)
+    setDeleteError(null)
+  }
+
+  const performDelete = () => {
+    if (!deleteId) return
     startTransition(async () => {
-      const res = await fetch(`/api/transactions/${id}`, { method: 'DELETE' }).then(r => r.json())
+      const res = await fetch(`/api/transactions/${deleteId}`, { method: 'DELETE' }).then(r => r.json())
       if (!res.success) {
-        alert(res.error || "Failed to delete transaction")
+        setDeleteError(res.error || "Failed to delete transaction")
       } else {
+        setDeleteId(null)
+        setDeleteError(null)
+        await revalidateDashboard()
         router.refresh()
       }
     })
@@ -373,6 +387,21 @@ export function TransactionPage({ initialTransactions, categories, accounts }: {
           ))}
         </div>
       )}
+
+      <ConfirmDialog 
+        open={deleteId !== null} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteId(null)
+            setDeleteError(null)
+          }
+        }}
+        title="Delete Transaction"
+        description="Are you sure you want to delete this transaction? This action cannot be undone."
+        onConfirm={performDelete}
+        isPending={isPending}
+        error={deleteError}
+      />
     </div>
   )
 }

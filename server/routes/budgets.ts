@@ -3,7 +3,6 @@ import { zValidator } from '@hono/zod-validator'
 import { db } from '@/db'
 import { budgets, transactions, categories } from '@/db/schema'
 import { eq, and, gte, lte, sql, or } from 'drizzle-orm'
-import { authMiddleware } from '../middleware/auth'
 import {
   budgetSchema,
   type BudgetInput,
@@ -11,17 +10,13 @@ import {
   calculateBudgetMetrics,
   type BudgetPeriod,
 } from '@/lib/budget-utils'
-import { z } from 'zod'
 
-type Variables = { userId: number }
-
-const app = new Hono<{ Variables: Variables }>()
-
-app.use('*', authMiddleware)
+const app = new Hono<{ Variables: { user: any } }>()
 
 // GET /api/budgets
 app.get('/', async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
 
   const allBudgets = await db
     .select({
@@ -82,7 +77,8 @@ app.get('/', async (c) => {
 
 // POST /api/budgets
 app.post('/', zValidator('json', budgetSchema), async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
   const parsed = c.req.valid('json')
 
   if (parsed.categoryId) {
@@ -114,7 +110,8 @@ app.post('/', zValidator('json', budgetSchema), async (c) => {
 
 // PUT /api/budgets/:id
 app.put('/:id', zValidator('json', budgetSchema), async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
   const id = Number(c.req.param('id'))
   const parsed = c.req.valid('json')
 
@@ -149,7 +146,8 @@ app.put('/:id', zValidator('json', budgetSchema), async (c) => {
 
 // DELETE /api/budgets/:id
 app.delete('/:id', async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
   const id = Number(c.req.param('id'))
 
   await db.delete(budgets).where(and(eq(budgets.id, id), eq(budgets.userId, userId)))

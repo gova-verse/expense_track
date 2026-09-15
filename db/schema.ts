@@ -1,20 +1,59 @@
-import { pgTable, serial, varchar, text, integer, timestamp, boolean, decimal, pgEnum, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, varchar, integer, timestamp, boolean, decimal, pgEnum, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-export const users = pgTable('users', {
-  id: serial('id').primaryKey(),
-  email: varchar('email', { length: 255 }).unique().notNull(),
-  password: varchar('password', { length: 255 }),
-  googleId: varchar('google_id', { length: 255 }).unique(),
-  name: varchar('name', { length: 255 }),
-  emailVerifiedAt: timestamp('email_verified_at'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+// ── Better Auth Tables ────────────────────────────────────────────
+
+export const user = pgTable('user', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  emailVerified: boolean('email_verified').notNull().default(false),
+  image: text('image'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+export const session = pgTable('session', {
+  id: text('id').primaryKey(),
+  expiresAt: timestamp('expires_at').notNull(),
+  token: text('token').notNull().unique(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  userId: text('user_id').notNull().references(() => user.id),
+});
+
+export const account = pgTable('account', {
+  id: text('id').primaryKey(),
+  accountId: text('account_id').notNull(),
+  providerId: text('provider_id').notNull(),
+  userId: text('user_id').notNull().references(() => user.id),
+  accessToken: text('access_token'),
+  refreshToken: text('refresh_token'),
+  idToken: text('id_token'),
+  accessTokenExpiresAt: timestamp('access_token_expires_at'),
+  refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
+  scope: text('scope'),
+  password: text('password'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const verification = pgTable('verification', {
+  id: text('id').primaryKey(),
+  identifier: text('identifier').notNull(),
+  value: text('value').notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// ── Application Tables ────────────────────────────────────────────
+
 export const userPreferences = pgTable('user_preferences', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id).unique(),
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').references(() => user.id).unique(),
   theme: varchar('theme', { length: 50 }).default('system').notNull(),
   colorTheme: varchar('color_theme', { length: 50 }).default('default').notNull(),
   currency: varchar('currency', { length: 10 }).default('INR').notNull(),
@@ -34,27 +73,16 @@ export const userPreferences = pgTable('user_preferences', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export const authTokenTypeEnum = pgEnum('auth_token_type', ['email_verification', 'password_reset']);
-
-export const authTokens = pgTable('auth_tokens', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id).notNull(),
-  tokenHash: varchar('token_hash', { length: 255 }).notNull(),
-  type: authTokenTypeEnum('type').notNull(),
-  expiresAt: timestamp('expires_at').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
 export const categoryTypeEnum = pgEnum('category_type', ['expense', 'income']);
 
 export const categories = pgTable('categories', {
-  id: serial('id').primaryKey(),
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
   name: varchar('name', { length: 255 }).notNull(),
   type: categoryTypeEnum('type').notNull(),
   icon: varchar('icon', { length: 255 }),
   color: varchar('color', { length: 255 }),
   isDefault: boolean('is_default').default(false).notNull(),
-  userId: integer('user_id').references(() => users.id), // Nullable for global defaults
+  userId: text('user_id').references(() => user.id), // Nullable for global defaults
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -64,27 +92,27 @@ export const transactionTypeEnum = pgEnum('transaction_type', ['expense', 'incom
 export const accountTypeEnum = pgEnum('account_type', ['cash', 'bank', 'wallet', 'credit', 'savings']);
 
 export const accounts = pgTable('accounts', {
-  id: serial('id').primaryKey(),
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
   name: varchar('name', { length: 255 }).notNull(),
   type: accountTypeEnum('type').notNull(),
   openingBalance: decimal('opening_balance', { precision: 12, scale: 2 }).default('0').notNull(),
-  userId: integer('user_id').references(() => users.id), // Prepared for auth
+  userId: text('user_id').references(() => user.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 export const transactions = pgTable('transactions', {
-  id: serial('id').primaryKey(),
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
   type: transactionTypeEnum('type').notNull(),
   amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
   date: timestamp('date').notNull(),
   description: text('description'),
   categoryId: integer('category_id').references(() => categories.id),
-  accountId: integer('account_id').references(() => accounts.id), // Optional for now at DB level to allow migration, but application requires it
+  accountId: integer('account_id').references(() => accounts.id),
   destinationAccountId: integer('destination_account_id').references(() => accounts.id),
   paymentMethod: varchar('payment_method', { length: 255 }),
   notes: text('notes'),
-  userId: integer('user_id').references(() => users.id), // Prepared for auth
+  userId: text('user_id').references(() => user.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => {
@@ -99,50 +127,67 @@ export const transactions = pgTable('transactions', {
 export const budgetPeriodEnum = pgEnum('budget_period', ['daily', 'weekly', 'monthly']);
 
 export const budgets = pgTable('budgets', {
-  id: serial('id').primaryKey(),
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
   name: varchar('name', { length: 255 }).notNull(),
   amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
   period: budgetPeriodEnum('period').notNull(),
-  categoryId: integer('category_id').references(() => categories.id), // Nullable for overall budget
-  userId: integer('user_id').references(() => users.id), // Prepared for auth
+  categoryId: integer('category_id').references(() => categories.id),
+  userId: text('user_id').references(() => user.id),
   startDate: timestamp('start_date').notNull(),
-  endDate: timestamp('end_date'), // Nullable for ongoing budgets
+  endDate: timestamp('end_date'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Relations
-export const usersRelations = relations(users, ({ one, many }) => ({
+// ── Relations ─────────────────────────────────────────────────────
+
+export const userRelations = relations(user, ({ one, many }) => ({
   preferences: one(userPreferences, {
-    fields: [users.id],
+    fields: [user.id],
     references: [userPreferences.userId],
   }),
+  sessions: many(session),
+  authAccounts: many(account),
   categories: many(categories),
   transactions: many(transactions),
   budgets: many(budgets),
-  accounts: many(accounts),
+  financialAccounts: many(accounts),
 }));
 
-export const userPreferencesRelations = relations(userPreferences, ({ one }) => ({
-  user: one(users, {
-    fields: [userPreferences.userId],
-    references: [users.id],
+export const sessionRelations = relations(session, ({ one }) => ({
+  user: one(user, {
+    fields: [session.userId],
+    references: [user.id],
   }),
 }));
 
-export const accountsRelations = relations(accounts, ({ one, many }) => ({
-  user: one(users, {
+export const accountRelations = relations(account, ({ one }) => ({
+  user: one(user, {
+    fields: [account.userId],
+    references: [user.id],
+  }),
+}));
+
+export const userPreferencesRelations = relations(userPreferences, ({ one }) => ({
+  user: one(user, {
+    fields: [userPreferences.userId],
+    references: [user.id],
+  }),
+}));
+
+export const financialAccountsRelations = relations(accounts, ({ one, many }) => ({
+  user: one(user, {
     fields: [accounts.userId],
-    references: [users.id],
+    references: [user.id],
   }),
   transactions: many(transactions, { relationName: 'account_transactions' }),
   incomingTransfers: many(transactions, { relationName: 'destination_account_transactions' }),
 }));
 
 export const categoriesRelations = relations(categories, ({ one, many }) => ({
-  user: one(users, {
+  user: one(user, {
     fields: [categories.userId],
-    references: [users.id],
+    references: [user.id],
   }),
   transactions: many(transactions),
   budgets: many(budgets),
@@ -163,9 +208,9 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
     references: [accounts.id],
     relationName: 'destination_account_transactions'
   }),
-  user: one(users, {
+  user: one(user, {
     fields: [transactions.userId],
-    references: [users.id],
+    references: [user.id],
   }),
 }));
 
@@ -174,8 +219,8 @@ export const budgetsRelations = relations(budgets, ({ one }) => ({
     fields: [budgets.categoryId],
     references: [categories.id],
   }),
-  user: one(users, {
+  user: one(user, {
     fields: [budgets.userId],
-    references: [users.id],
+    references: [user.id],
   }),
 }));

@@ -10,6 +10,7 @@ import { Field, FieldLabel, FieldError } from "@/components/ui/field"
 import { PencilSimple, Trash, Wallet, Bank, CreditCard, Coins, PiggyBank } from "@phosphor-icons/react"
 import { insertAccountSchema } from "@/lib/validations"
 import { usePreferences, formatCurrency } from "@/components/preferences-provider"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 type AccountWithBalance = {
   id: number;
@@ -47,6 +48,8 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: AccountWi
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [editingAcc, setEditingAcc] = useState<AccountWithBalance | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   // Form State
@@ -119,12 +122,19 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: AccountWi
   }
 
   const handleDelete = (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this account? It will fail if there are any transactions associated with it.")) return
+    setDeleteId(id)
+    setDeleteError(null)
+  }
+
+  const performDelete = () => {
+    if (!deleteId) return
     startTransition(async () => {
-      const res = await fetch(`/api/accounts/${id}`, { method: 'DELETE' }).then(r => r.json())
+      const res = await fetch(`/api/accounts/${deleteId}`, { method: 'DELETE' }).then(r => r.json())
       if (!res.success) {
-        alert(res.error || "Failed to delete account")
+        setDeleteError(res.error || "Failed to delete account")
       } else {
+        setDeleteId(null)
+        setDeleteError(null)
         router.refresh()
       }
     })
@@ -238,6 +248,21 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: AccountWi
           </Card>
         ))}
       </div>
+
+      <ConfirmDialog 
+        open={deleteId !== null} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteId(null)
+            setDeleteError(null)
+          }
+        }}
+        title="Delete Account"
+        description="Are you sure you want to delete this account? It will fail if there are any transactions associated with it."
+        onConfirm={performDelete}
+        isPending={isPending}
+        error={deleteError}
+      />
     </div>
   )
 }

@@ -4,19 +4,14 @@ import { db } from '@/db'
 import { categories, transactions } from '@/db/schema'
 import { eq, and, count, or, sql } from 'drizzle-orm'
 import { insertCategorySchema, updateCategorySchema } from '@/lib/validations'
-import { authMiddleware } from '../middleware/auth'
-import { z } from 'zod'
 
-type Variables = { userId: number }
-
-const app = new Hono<{ Variables: Variables }>()
-
-app.use('*', authMiddleware)
+const app = new Hono<{ Variables: { user: any } }>()
 
 // GET /api/categories          → all categories for the user
 // GET /api/categories?type=expense|income → filtered
 app.get('/', async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
   const type = c.req.query('type') as 'expense' | 'income' | undefined
 
   if (type && type !== 'expense' && type !== 'income') {
@@ -41,7 +36,8 @@ app.get('/', async (c) => {
 
 // POST /api/categories
 app.post('/', zValidator('json', insertCategorySchema), async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
   const { name, type, icon, color, isDefault } = c.req.valid('json')
 
   // Check for duplicate name within the same type
@@ -69,7 +65,8 @@ app.post('/', zValidator('json', insertCategorySchema), async (c) => {
 
 // PUT /api/categories/:id
 app.put('/:id', zValidator('json', updateCategorySchema), async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
   const id = Number(c.req.param('id'))
   const body = c.req.valid('json')
 
@@ -107,7 +104,8 @@ app.put('/:id', zValidator('json', updateCategorySchema), async (c) => {
 
 // DELETE /api/categories/:id
 app.delete('/:id', async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
   const id = Number(c.req.param('id'))
 
   const existingCategory = await db

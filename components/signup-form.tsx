@@ -17,6 +17,7 @@ import { z } from "zod"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { authClient } from "@/lib/auth-client"
 
 export function SignupForm({
   className,
@@ -37,16 +38,16 @@ export function SignupForm({
 
   async function onSubmit(data: z.infer<typeof signupSchema>) {
     setError(null)
-    const result = await fetch('/api/auth/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    }).then(r => r.json())
-    if (!result.success) {
-      setError(result.error || "Failed to sign up")
+    const { error: authError } = await authClient.signUp.email({
+      name: data.name,
+      email: data.email,
+      password: data.password,
+    })
+    if (authError) {
+      setError(authError.message || "Failed to sign up")
       return
     }
-    router.push("/verify-email?sent=true")
+    router.push("/dashboard")
   }
 
   return (
@@ -129,7 +130,7 @@ export function SignupForm({
               </FieldSeparator>
               <Field>
                 <Button variant="outline" type="button" asChild className="w-full">
-                  <a href="/api/auth/google">Continue with Google</a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); authClient.signIn.social({ provider: 'google' }) }}>Continue with Google</a>
                 </Button>
               </Field>
               <FieldDescription className="text-center">

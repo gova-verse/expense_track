@@ -26,7 +26,7 @@ export default async function DashboardPage() {
   }
 
   const [analytics, recentTransactions] = await Promise.all([
-    getFullAnalytics(currentPeriod, previousPeriod, session.userId),
+    getFullAnalytics(currentPeriod, previousPeriod, session.user.id),
     getRecentTransactions(5)
   ])
 

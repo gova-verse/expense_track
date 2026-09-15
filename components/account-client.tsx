@@ -14,8 +14,10 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
-import { CheckCircleIcon, WarningCircleIcon } from "@phosphor-icons/react"
+import { CheckCircleIcon, WarningCircleIcon, Trash } from "@phosphor-icons/react"
 import { useRouter } from "next/navigation"
+import { authClient } from "@/lib/auth-client"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 interface AccountUser {
   name: string
@@ -30,6 +32,10 @@ export function AccountClient({ user }: { user: AccountUser }) {
   const [profileError, setProfileError] = useState<string | null>(null)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
+
+  const [deleting, setDeleting] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const profileForm = useForm<z.infer<typeof updateProfileSchema>>({
     resolver: zodResolver(updateProfileSchema),
@@ -60,16 +66,38 @@ export function AccountClient({ user }: { user: AccountUser }) {
   async function onPasswordSubmit(data: z.infer<typeof changePasswordSchema>) {
     setPasswordError(null)
     setPasswordSuccess(false)
-    const result = await fetch('/api/settings/password', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    }).then(r => r.json())
-    if (result.success) {
+    const { error } = await authClient.changePassword({
+      newPassword: data.newPassword,
+      currentPassword: data.currentPassword,
+      revokeOtherSessions: true,
+    })
+
+    if (!error) {
       setPasswordSuccess(true)
       passwordForm.reset()
     } else {
-      setPasswordError(result.error || "Failed to change password")
+      setPasswordError(error.message || "Failed to change password")
+    }
+  }
+
+  const handleDeleteAccount = () => {
+    setShowDeleteConfirm(true)
+    setDeleteError(null)
+  }
+
+  const performDeleteAccount = async () => {
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/settings/account', { method: 'DELETE' })
+      if (res.ok) {
+        window.location.href = '/login'
+      } else {
+        setDeleteError('Failed to delete account. Please try again.')
+        setDeleting(false)
+      }
+    } catch {
+      setDeleteError('Something went wrong. Please try again.')
+      setDeleting(false)
     }
   }
 
@@ -199,6 +227,49 @@ export function AccountClient({ user }: { user: AccountUser }) {
           </Button>
         </FieldGroup>
       </form>
+
+      {/* Danger Zone */}
+      <div className="pt-8">
+        <div>
+          <h3 className="text-lg font-medium text-red-600 dark:text-red-500">Danger Zone</h3>
+          <p className="text-sm text-muted-foreground">
+            Permanently delete your account and all associated data.
+          </p>
+        </div>
+        <Separator className="my-4 bg-red-100 dark:bg-red-900/30" />
+
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between p-4 border rounded-lg border-red-100 dark:border-red-900/30 bg-red-50/50 dark:bg-red-900/10">
+          <div className="flex gap-4">
+            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full self-start">
+              <Trash className="w-6 h-6 text-red-600 dark:text-red-500" />
+            </div>
+            <div>
+              <h4 className="font-medium text-red-600 dark:text-red-500">Delete Account</h4>
+              <p className="text-sm text-muted-foreground mt-1 max-w-md">
+                Permanently delete your account and all associated data. This action cannot be undone.
+              </p>
+            </div>
+          </div>
+          <Button variant="destructive" onClick={handleDeleteAccount} disabled={deleting} className="shrink-0">
+            {deleting ? 'Deleting...' : 'Delete Account'}
+          </Button>
+        </div>
+      </div>
+      
+      <ConfirmDialog 
+        open={showDeleteConfirm} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowDeleteConfirm(false)
+            setDeleteError(null)
+          }
+        }}
+        title="Delete Account"
+        description="⚠️ This will permanently delete your account and ALL your data (transactions, accounts, budgets). This cannot be undone."
+        onConfirm={performDeleteAccount}
+        isPending={deleting}
+        error={deleteError}
+      />
     </div>
   )
 }

@@ -2,47 +2,36 @@ import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { db } from '@/db'
 import { transactions, accounts } from '@/db/schema'
-import { eq, sql, and } from 'drizzle-orm'
+import { eq, desc, and } from 'drizzle-orm'
 import { insertTransferSchema, updateTransferSchema } from '@/lib/validations'
-import { authMiddleware } from '../middleware/auth'
 import { checkSufficientBalance, insufficientBalanceError, getAccountBalance } from '../lib/balance'
 
-type Variables = { userId: number }
-
-const app = new Hono<{ Variables: Variables }>()
-
-app.use('*', authMiddleware)
+const app = new Hono<{ Variables: { user: any } }>()
 
 // GET /api/transfers
 app.get('/', async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
 
-  const data = await db.execute(sql`
-    SELECT 
-      t.id,
-      t.type,
-      t.amount,
-      t.date,
-      t.description,
-      t.notes,
-      t.account_id as "accountId",
-      sa.name as "accountName",
-      t.destination_account_id as "destinationAccountId",
-      da.name as "destinationAccountName",
-      t.created_at as "createdAt"
-    FROM transactions t
-    LEFT JOIN accounts sa ON t.account_id = sa.id
-    LEFT JOIN accounts da ON t.destination_account_id = da.id
-    WHERE t.type = 'transfer' AND t.user_id = ${userId}
-    ORDER BY t.date DESC, t.created_at DESC
-  `)
+  const data = await db.query.transactions.findMany({
+    where: and(
+      eq(transactions.type, 'transfer'),
+      eq(transactions.userId, userId)
+    ),
+    with: {
+      account: { columns: { name: true, type: true } },
+      destinationAccount: { columns: { name: true, type: true } },
+    },
+    orderBy: [desc(transactions.date), desc(transactions.createdAt)],
+  })
 
-  return c.json(data.rows)
+  return c.json(data)
 })
 
 // POST /api/transfers
 app.post('/', zValidator('json', insertTransferSchema), async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
   const { amount, date, accountId, destinationAccountId, description, notes } = c.req.valid('json')
 
   const sourceAccount = await db
@@ -85,7 +74,8 @@ app.post('/', zValidator('json', insertTransferSchema), async (c) => {
 
 // PUT /api/transfers/:id
 app.put('/:id', zValidator('json', updateTransferSchema), async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
   const id = Number(c.req.param('id'))
   const body = c.req.valid('json')
 
@@ -168,7 +158,8 @@ app.put('/:id', zValidator('json', updateTransferSchema), async (c) => {
 
 // DELETE /api/transfers/:id
 app.delete('/:id', async (c) => {
-  const userId = c.get('userId')
+  const user = c.get('user') as any
+  const userId = user.id
   const id = Number(c.req.param('id'))
 
   const existingTx = await db

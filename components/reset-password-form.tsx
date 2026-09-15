@@ -23,6 +23,7 @@ import { z } from "zod"
 import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { authClient } from "@/lib/auth-client"
 
 function ResetPasswordContent({
   className,
@@ -44,13 +45,12 @@ function ResetPasswordContent({
 
   async function onSubmit(data: z.infer<typeof resetPasswordSchema>) {
     setError(null)
-    const result = await fetch('/api/auth/reset-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    }).then(r => r.json())
-    if (!result.success) {
-      setError(result.error || "Failed to reset password")
+    const { error: authError } = await authClient.resetPassword({
+      newPassword: data.password,
+      token: data.token,
+    })
+    if (authError) {
+      setError(authError.message || "Failed to reset password")
       return
     }
     router.push("/login?reset=success")

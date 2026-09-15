@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
 
@@ -22,6 +23,7 @@ export function CurrencyClient({
   const [dateFormat, setDateFormat] = useState(initialDateFormat)
   const [timezone, setTimezone] = useState(initialTimezone)
 
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [success, setSuccess] = useState(false)
 
@@ -30,13 +32,16 @@ export function CurrencyClient({
     setSuccess(false)
     
     startTransition(async () => {
-      await fetch('/api/settings/preferences', {
-        method: 'PUT',
+      const res = await fetch('/api/settings/preferences', {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currency, numberFormat, dateFormat, timezone }),
       })
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
+      if (res.ok) {
+        setSuccess(true)
+        router.refresh()
+        setTimeout(() => setSuccess(false), 3000)
+      }
     })
   }
 
