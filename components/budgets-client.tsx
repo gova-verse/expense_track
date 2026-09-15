@@ -69,7 +69,7 @@ export function BudgetsClient({
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {budgets.map((b) => (
             <Card key={b.id} className="relative overflow-hidden group">
-              {/* Progress bar background indicator (optional neat UI detail) */}
+              {}
               <div 
                 className={`absolute bottom-0 left-0 h-1 transition-all duration-500 ${
                   b.status === "healthy" ? "bg-green-500" :
@@ -147,7 +147,7 @@ export function BudgetsClient({
         </div>
       )}
 
-      {/* Reusable Form Dialog */}
+      {}
       <BudgetForm
         open={formOpen}
         onOpenChange={setFormOpen}

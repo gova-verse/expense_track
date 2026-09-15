@@ -12,14 +12,14 @@ export default async function DashboardPage() {
     redirect("/login")
   }
 
-  // Current month period
+  
   const now = new Date()
   const currentPeriod: DateRange = {
     from: new Date(now.getFullYear(), now.getMonth(), 1),
     to: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
   }
 
-  // Previous month period for trend comparison
+  
   const previousPeriod: DateRange = {
     from: new Date(now.getFullYear(), now.getMonth() - 1, 1),
     to: new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999)

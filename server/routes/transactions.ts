@@ -8,7 +8,7 @@ import { checkSufficientBalance, insufficientBalanceError } from '../lib/balance
 
 const app = new Hono<{ Variables: { user: any } }>()
 
-// GET /api/transactions
+
 app.get('/', async (c) => {
   const user = c.get('user') as any
   const userId = user.id
@@ -23,12 +23,12 @@ app.get('/', async (c) => {
     orderBy: [desc(transactions.date), desc(transactions.createdAt)],
   })
 
-  // Format data to match old shape if necessary, or let frontend handle the nested objects.
-  // Phase 5 introduces Shared Types, so frontend will expect nested `category` and `account` objects instead of flattened ones.
+  
+  
   return c.json(data)
 })
 
-// GET /api/transactions/recent?limit=5
+
 app.get('/recent', async (c) => {
   const user = c.get('user') as any
   const userId = user.id
@@ -48,7 +48,7 @@ app.get('/recent', async (c) => {
   return c.json(data)
 })
 
-// POST /api/transactions
+
 app.post('/', zValidator('json', insertTransactionSchema), async (c) => {
   const user = c.get('user') as any
   const userId = user.id
@@ -77,7 +77,7 @@ app.post('/', zValidator('json', insertTransactionSchema), async (c) => {
     return c.json({ success: false, error: `Cannot use a ${cat[0].type} category for a ${type} transaction.` }, 400)
   }
 
-  // Balance check for expense transactions (non-credit accounts)
+  
   if (type === 'expense' && accountId) {
     const balanceCheck = await checkSufficientBalance(accountId, amount)
     if (!balanceCheck.ok) {
@@ -101,7 +101,7 @@ app.post('/', zValidator('json', insertTransactionSchema), async (c) => {
   return c.json({ success: true }, 201)
 })
 
-// PUT /api/transactions/:id
+
 app.put('/:id', zValidator('json', updateTransactionSchema), async (c) => {
   const user = c.get('user') as any
   const userId = user.id
@@ -136,7 +136,7 @@ app.put('/:id', zValidator('json', updateTransactionSchema), async (c) => {
     }
   }
 
-  // Balance check for expense transactions when amount or account changed
+  
   const finalType = body.type || existingTx[0].type
   const finalAccountId = body.accountId !== undefined ? body.accountId : existingTx[0].accountId
   const finalAmount = body.amount !== undefined ? body.amount : parseFloat(existingTx[0].amount)
@@ -168,7 +168,7 @@ app.put('/:id', zValidator('json', updateTransactionSchema), async (c) => {
   return c.json({ success: true })
 })
 
-// DELETE /api/transactions/:id
+
 app.delete('/:id', async (c) => {
   const user = c.get('user') as any
   const userId = user.id

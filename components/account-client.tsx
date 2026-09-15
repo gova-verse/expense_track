@@ -109,7 +109,7 @@ export function AccountClient({ user }: { user: AccountUser }) {
 
   return (
     <div className="space-y-8">
-      {/* Profile Section */}
+      {}
       <div>
         <h3 className="text-lg font-medium">Profile</h3>
         <p className="text-sm text-muted-foreground">
@@ -147,7 +147,7 @@ export function AccountClient({ user }: { user: AccountUser }) {
         </div>
       </div>
 
-      {/* Edit Name */}
+      {}
       <div>
         <h3 className="text-lg font-medium">Personal Information</h3>
         <p className="text-sm text-muted-foreground">
@@ -179,7 +179,7 @@ export function AccountClient({ user }: { user: AccountUser }) {
         </FieldGroup>
       </form>
 
-      {/* Password & Security */}
+      {}
       <div>
         <h3 className="text-lg font-medium">Password & Security</h3>
         <p className="text-sm text-muted-foreground">
@@ -228,7 +228,7 @@ export function AccountClient({ user }: { user: AccountUser }) {
         </FieldGroup>
       </form>
 
-      {/* Danger Zone */}
+      {}
       <div className="pt-8">
         <div>
           <h3 className="text-lg font-medium text-red-600 dark:text-red-500">Danger Zone</h3>

@@ -72,7 +72,7 @@ export function NotificationsClient({ preferences }: { preferences: Notification
       </div>
       <Separator />
 
-      {/* Email Notifications */}
+      {}
       <div>
         <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Email Notifications</h4>
         <div className="space-y-1">
@@ -102,7 +102,7 @@ export function NotificationsClient({ preferences }: { preferences: Notification
 
       <Separator />
 
-      {/* Financial Notifications */}
+      {}
       <div>
         <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Financial Notifications</h4>
         <div className="space-y-1">
@@ -132,7 +132,7 @@ export function NotificationsClient({ preferences }: { preferences: Notification
 
       <Separator />
 
-      {/* Product Notifications */}
+      {}
       <div>
         <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Product Notifications</h4>
         <div className="space-y-1">
@@ -153,7 +153,7 @@ export function NotificationsClient({ preferences }: { preferences: Notification
         </div>
       </div>
 
-      {/* Save indicator */}
+      {}
       {saving && (
         <p className="text-sm text-muted-foreground">Saving...</p>
       )}

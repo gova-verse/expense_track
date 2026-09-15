@@ -1,10 +1,3 @@
-/**
- * Server-side API client for fetching data from Hono endpoints within
- * Next.js Server Components and page.tsx files.
- *
- * It reads the Better Auth session cookies from next/headers and forwards
- * them with every request so Hono's auth middleware can verify the session.
- */
 import { cookies } from 'next/headers'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
@@ -28,7 +21,7 @@ async function apiFetch<T>(path: string): Promise<T> {
   return res.json() as Promise<T>
 }
 
-// ── Transactions ──────────────────────────────────────────────────
+
 
 export type TransactionItem = {
   id: number
@@ -54,7 +47,7 @@ export function getRecentTransactions(limit = 5) {
   return apiFetch<TransactionItem[]>(`/transactions/recent?limit=${limit}`)
 }
 
-// ── Accounts ──────────────────────────────────────────────────────
+
 
 export type Account = {
   id: number
@@ -73,7 +66,7 @@ export function getAccountsWithBalance() {
   return apiFetch<AccountWithBalance[]>('/accounts/with-balance')
 }
 
-// ── Categories ────────────────────────────────────────────────────
+
 
 export type Category = {
   id: number
@@ -92,7 +85,7 @@ export function getAllCategories() {
   return apiFetch<Category[]>('/categories')
 }
 
-// ── Transfers ─────────────────────────────────────────────────────
+
 
 export type Transfer = {
   id: number
@@ -112,7 +105,7 @@ export function getTransfers() {
   return apiFetch<Transfer[]>('/transfers')
 }
 
-// ── Budgets ───────────────────────────────────────────────────────
+
 
 export type BudgetWithSpent = {
   id: number
@@ -136,7 +129,7 @@ export function getBudgets() {
   return apiFetch<BudgetWithSpent[]>('/budgets')
 }
 
-// ── Settings / User ───────────────────────────────────────────────
+
 
 export type UserInfo = {
   id: string

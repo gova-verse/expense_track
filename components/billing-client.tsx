@@ -27,7 +27,7 @@ export function BillingClient() {
       </div>
       <Separator />
 
-      {/* Current Plan */}
+      {}
       <div className="rounded-lg border p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -52,7 +52,7 @@ export function BillingClient() {
         </div>
       </div>
 
-      {/* Pro Plan */}
+      {}
       <div className="rounded-lg border border-dashed p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

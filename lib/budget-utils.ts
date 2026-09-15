@@ -13,13 +13,7 @@ export type BudgetInput = z.infer<typeof budgetSchema>
 
 export type BudgetStatus = "healthy" | "approaching" | "over";
 
-/**
- * Get the current active date range for a given budget period.
- * 
- * - Daily: Start of today to end of today
- * - Weekly: Start of current week (Monday) to end of week (Sunday)
- * - Monthly: Start of current month to end of current month
- */
+
 export function getActivePeriodRange(period: BudgetPeriod, referenceDate: Date = new Date()): { from: Date; to: Date } {
   const from = new Date(referenceDate)
   const to = new Date(referenceDate)
@@ -30,9 +24,9 @@ export function getActivePeriodRange(period: BudgetPeriod, referenceDate: Date =
       to.setHours(23, 59, 59, 999)
       break
     case "weekly": {
-      // Assuming week starts on Monday
+      
       const day = from.getDay()
-      const diff = from.getDate() - day + (day === 0 ? -6 : 1) // adjust when day is sunday
+      const diff = from.getDate() - day + (day === 0 ? -6 : 1) 
       from.setDate(diff)
       from.setHours(0, 0, 0, 0)
       

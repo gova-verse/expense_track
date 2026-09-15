@@ -5,7 +5,7 @@ import { ReportsClient } from "@/components/reports-client"
 import { verifySession } from "@/lib/auth"
 import { redirect } from "next/navigation"
 
-// Helper: compute current and previous DateRange for a given period key
+
 function getPeriods(periodKey: string): { current: DateRange; previous: DateRange; label: string } {
   const now = new Date()
 
@@ -25,7 +25,7 @@ function getPeriods(periodKey: string): { current: DateRange; previous: DateRang
       return { current: { from, to }, previous: { from: prevFrom, to: prevTo }, label: "This Year" }
     }
     default: {
-      // this-month
+      
       const from = new Date(now.getFullYear(), now.getMonth(), 1)
       const to = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
       const prevFrom = new Date(now.getFullYear(), now.getMonth() - 1, 1)

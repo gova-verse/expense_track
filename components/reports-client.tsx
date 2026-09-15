@@ -58,7 +58,7 @@ const COLORS = ["#6366f1", "#f43f5e", "#10b981", "#f59e0b", "#8b5cf6", "#06b6d4"
 const TABS = ["Overview", "Income", "Expenses", "Categories", "Cash Flow"] as const
 type Tab = (typeof TABS)[number]
 
-// ── Main Component ──────────────────────────────────────────────
+
 export function ReportsClient({
   analytics, periodKey, periodLabel
 }: {
@@ -76,7 +76,7 @@ export function ReportsClient({
     router.push(`/dashboard/reports?period=${key}`)
   }
 
-  // Close dropdown on outside click
+  
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (exportRef.current && !exportRef.current.contains(e.target as Node)) setExportOpen(false)
@@ -95,11 +95,11 @@ export function ReportsClient({
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 pt-0">
-      {/* Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold">Financial Reports</h1>
 
-        {/* Period Selector */}
+        {}
         <div className="flex gap-2">
           {([
             ["this-month", "This Month"],
@@ -116,7 +116,7 @@ export function ReportsClient({
             </Button>
           ))}
 
-          {/* Export Dropdown */}
+          {}
           <div className="relative" ref={exportRef}>
             <Button variant="outline" size="sm" onClick={() => setExportOpen(o => !o)}>
               <Export className="w-4 h-4 mr-1" /> Export
@@ -132,7 +132,7 @@ export function ReportsClient({
         </div>
       </div>
 
-      {/* Tabs */}
+      {}
       <div className="flex gap-1 border-b overflow-x-auto">
         {TABS.map(tab => (
           <button
@@ -149,7 +149,7 @@ export function ReportsClient({
         ))}
       </div>
 
-      {/* Tab Content */}
+      {}
       {activeTab === "Overview" && <OverviewTab analytics={analytics} hasData={hasData} periodLabel={periodLabel} />}
       {activeTab === "Income" && <IncomeTab analytics={analytics} hasData={hasData} />}
       {activeTab === "Expenses" && <ExpenseTab analytics={analytics} hasData={hasData} />}
@@ -159,7 +159,7 @@ export function ReportsClient({
   )
 }
 
-// ── Overview ────────────────────────────────────────────────────
+
 function OverviewTab({ analytics, hasData, periodLabel }: { analytics: AnalyticsData; hasData: boolean; periodLabel: string }) {
   const prefs = usePreferences()
   const fmt = (val: number) => formatCurrency(val, prefs, { maximumFractionDigits: 0 })
@@ -208,7 +208,7 @@ function OverviewTab({ analytics, hasData, periodLabel }: { analytics: Analytics
   )
 }
 
-// ── Income ──────────────────────────────────────────────────────
+
 function IncomeTab({ analytics, hasData }: { analytics: AnalyticsData; hasData: boolean }) {
   const prefs = usePreferences()
   const fmt = (val: number) => formatCurrency(val, prefs, { maximumFractionDigits: 0 })
@@ -266,7 +266,7 @@ function IncomeTab({ analytics, hasData }: { analytics: AnalyticsData; hasData: 
   )
 }
 
-// ── Expenses ────────────────────────────────────────────────────
+
 function ExpenseTab({ analytics, hasData }: { analytics: AnalyticsData; hasData: boolean }) {
   const prefs = usePreferences()
   const fmt = (val: number) => formatCurrency(val, prefs, { maximumFractionDigits: 0 })
@@ -330,7 +330,7 @@ function ExpenseTab({ analytics, hasData }: { analytics: AnalyticsData; hasData:
   )
 }
 
-// ── Categories ──────────────────────────────────────────────────
+
 function CategoriesTab({ analytics, hasData }: { analytics: AnalyticsData; hasData: boolean }) {
   const prefs = usePreferences()
   const fmt = (val: number) => formatCurrency(val, prefs, { maximumFractionDigits: 0 })
@@ -395,7 +395,7 @@ function CategoriesTab({ analytics, hasData }: { analytics: AnalyticsData; hasDa
   )
 }
 
-// ── Cash Flow ───────────────────────────────────────────────────
+
 function CashFlowTab({ analytics, hasData }: { analytics: AnalyticsData; hasData: boolean }) {
   const prefs = usePreferences()
   const fmt = (val: number) => formatCurrency(val, prefs, { maximumFractionDigits: 0 })
@@ -443,7 +443,7 @@ function CashFlowTab({ analytics, hasData }: { analytics: AnalyticsData; hasData
   )
 }
 
-// ── Shared Sub-Components ───────────────────────────────────────
+
 
 function MetricCard({ title, value, icon, trend, color, subtitle }: {
   title: string
@@ -487,7 +487,7 @@ function CategoryRow({ cat, index }: { cat: CategoryStatWithTrend; index: number
 }
 
 function TrendDisplay({ trend }: { trend: number }) {
-  const isNew = trend === 100 // our calculateTrend returns 100 when prev === 0 && current > 0
+  const isNew = trend === 100 
   if (isNew) return <span className="text-sm font-medium text-blue-500">New</span>
   return (
     <span className={`text-sm font-medium ${trend >= 0 ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500"}`}>

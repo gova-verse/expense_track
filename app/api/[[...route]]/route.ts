@@ -1,7 +1,7 @@
 import { handle } from 'hono/vercel'
 import app from '@/server/index'
 
-// This allows Hono to handle all requests sent to /api/*
+
 export const GET = handle(app)
 export const POST = handle(app)
 export const PUT = handle(app)

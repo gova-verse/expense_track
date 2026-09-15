@@ -15,8 +15,8 @@ export const auth = betterAuth({
     },
   },
   session: {
-    expiresIn: 60 * 60 * 24 * 7, // 7 days
-    updateAge: 60 * 60 * 24,      // refresh daily
+    expiresIn: 60 * 60 * 24 * 7, 
+    updateAge: 60 * 60 * 24,      
   },
   socialProviders: {
     google: {
@@ -33,10 +33,6 @@ export const auth = betterAuth({
   },
 })
 
-/**
- * Verify the current session in Server Components.
- * Returns the session object if authenticated, or null if not.
- */
 export async function verifySession() {
   const reqHeaders = await headers()
   const session = await auth.api.getSession({

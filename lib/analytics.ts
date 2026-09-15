@@ -7,16 +7,16 @@ export type DateRange = {
   to: Date;
 }
 
-// Helper to safely parse decimal strings from Postgres
+
 function safeNum(val: unknown): number {
   if (!val) return 0;
   const num = typeof val === "string" ? parseFloat(val) : Number(val);
   return isNaN(num) ? 0 : num;
 }
 
-// 1. Core aggregation query for a specific period
+
 export async function getPeriodAggregations(period: DateRange, userId: string) {
-  // Aggregate by type
+  
   const typeAggs = await db.select({
     type: transactions.type,
     total: sql<string>`COALESCE(SUM(${transactions.amount}), '0')`,
@@ -64,7 +64,7 @@ export async function getPeriodAggregations(period: DateRange, userId: string) {
   }
 }
 
-// 2. Category Aggregations
+
 export async function getCategoryAggregations(period: DateRange, type: "expense" | "income", userId: string) {
   const catAggs = await db.select({
     categoryId: transactions.categoryId,
@@ -96,13 +96,13 @@ export async function getCategoryAggregations(period: DateRange, type: "expense"
       categoryName: row.categoryName || "Uncategorized",
       categoryIcon: row.categoryIcon,
       categoryColor: row.categoryColor,
-      totalSpent: val, // meaning total spent or total income
+      totalSpent: val, 
       count: row.count,
       avgTransaction: row.count > 0 ? val / row.count : 0
     }
   });
 
-  // Calculate percentages
+  
   const finalResults = results.map(r => ({
     ...r,
     share: overallTotal > 0 ? (r.totalSpent / overallTotal) * 100 : 0
@@ -117,15 +117,15 @@ export async function getCategoryAggregations(period: DateRange, type: "expense"
   }
 }
 
-// 3. Trend Calculator Helper
+
 export function calculateTrend(current: number, previous: number): number {
   if (previous === 0) {
-    return current > 0 ? 100 : 0; // If previous was 0 and we have money now, it's a 100% increase (or handle logically)
+    return current > 0 ? 100 : 0; 
   }
   return ((current - previous) / previous) * 100;
 }
 
-// 4. Comprehensive Full Analytics Fetcher (combines current and previous period)
+
 export async function getFullAnalytics(currentPeriod: DateRange, previousPeriod: DateRange, userId: string) {
   const currentOverall = await getPeriodAggregations(currentPeriod, userId);
   const previousOverall = await getPeriodAggregations(previousPeriod, userId);
@@ -136,11 +136,11 @@ export async function getFullAnalytics(currentPeriod: DateRange, previousPeriod:
   const currentIncomeCats = await getCategoryAggregations(currentPeriod, "income", userId);
   const previousIncomeCats = await getCategoryAggregations(previousPeriod, "income", userId);
 
-  // Calculate trends for overall
+  
   const incomeTrend = calculateTrend(currentOverall.totalIncome, previousOverall.totalIncome);
   const expenseTrend = calculateTrend(currentOverall.totalExpenses, previousOverall.totalExpenses);
 
-  // Map category trends
+  
   const expenseCategoriesWithTrend = currentExpenseCats.categories.map(cat => {
     const prevCat = previousExpenseCats.categories.find(p => p.categoryId === cat.categoryId);
     const prevTotal = prevCat ? prevCat.totalSpent : 0;

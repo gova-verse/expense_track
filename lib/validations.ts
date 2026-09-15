@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { categoryTypeEnum, transactionTypeEnum, budgetPeriodEnum } from '../db/schema';
 
-// Transactions
+
 export const insertTransactionSchema = z.object({
   type: z.enum(transactionTypeEnum.enumValues),
   amount: z.coerce.number().positive("Amount must be greater than 0"),
@@ -16,7 +16,7 @@ export const insertTransactionSchema = z.object({
 
 export const updateTransactionSchema = insertTransactionSchema.partial();
 
-// Transfers
+
 export const insertTransferSchema = z.object({
   amount: z.coerce.number().positive("Amount must be greater than 0"),
   date: z.coerce.date(),
@@ -38,7 +38,7 @@ export const updateTransferSchema = z.object({
   notes: z.string().optional(),
 });
 
-// Accounts
+
 export const insertAccountSchema = z.object({
   name: z.string().min(1, "Name is required"),
   type: z.enum(['cash', 'bank', 'wallet', 'credit', 'savings']),
@@ -47,7 +47,7 @@ export const insertAccountSchema = z.object({
 
 export const updateAccountSchema = insertAccountSchema.partial();
 
-// Categories
+
 export const insertCategorySchema = z.object({
   name: z.string().min(1, "Name is required"),
   type: z.enum(categoryTypeEnum.enumValues),
@@ -58,7 +58,7 @@ export const insertCategorySchema = z.object({
 
 export const updateCategorySchema = insertCategorySchema.partial();
 
-// Budgets
+
 export const insertBudgetSchema = z.object({
   name: z.string().min(1, "Name is required"),
   amount: z.coerce.number().positive("Amount must be greater than 0"),
@@ -70,7 +70,7 @@ export const insertBudgetSchema = z.object({
 
 export const updateBudgetSchema = insertBudgetSchema.partial();
 
-// Auth — shared password rules
+
 export const passwordRules = z.string()
   .min(8, "Password must be at least 8 characters")
   .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
@@ -105,12 +105,12 @@ export const resetPasswordSchema = z.object({
   path: ["confirmPassword"],
 });
 
-// Profile
+
 export const updateProfileSchema = z.object({
   name: z.string().min(1, "Name is required").max(255),
 });
 
-// Change password
+
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
   newPassword: passwordRules,
@@ -120,7 +120,7 @@ export const changePasswordSchema = z.object({
   path: ["confirmPassword"],
 });
 
-// Notification preferences
+
 export const notificationPreferencesSchema = z.object({
   notifySecurityAlerts: z.boolean(),
   notifyAccountActivity: z.boolean(),

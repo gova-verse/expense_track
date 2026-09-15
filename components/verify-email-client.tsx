@@ -36,8 +36,8 @@ function VerifyEmailContent() {
 
   useEffect(() => {
     if (token && status === "verifying") {
-      // Email verification is not required in current config
-      // Just redirect to login
+      
+      
       setStatus("success")
       setTimeout(() => {
         router.push("/login?verified=true")
@@ -49,11 +49,11 @@ function VerifyEmailContent() {
     if (!resendEmail) return
     setResendStatus("sending")
     setResendError(null)
-    // Email verification is not required in current config
+    
     setResendStatus("sent")
   }
 
-  // Token verification in progress
+  
   if (token && status === "verifying") {
     return (
       <Card>
@@ -65,7 +65,7 @@ function VerifyEmailContent() {
     )
   }
 
-  // Token verification success
+  
   if (status === "success") {
     return (
       <Card>
@@ -84,7 +84,7 @@ function VerifyEmailContent() {
     )
   }
 
-  // Token verification failed
+  
   if (token && status === "error") {
     return (
       <Card>
@@ -132,7 +132,7 @@ function VerifyEmailContent() {
     )
   }
 
-  // Default: "check your email" state (after signup)
+  
   return (
     <Card>
       <CardHeader>

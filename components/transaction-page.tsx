@@ -57,7 +57,7 @@ export function TransactionPage({ initialTransactions, categories, accounts }: {
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   
-  // Filters
+  
   const [filterType, setFilterType] = useState<"all" | "expense" | "income" | "transfer">("all")
   const [filterCategory, setFilterCategory] = useState<string>("all")
   const [filterMonth, setFilterMonth] = useState<string>("")
@@ -81,7 +81,7 @@ export function TransactionPage({ initialTransactions, categories, accounts }: {
       if (filterType !== "all" && tx.type !== filterType) return false
       if (filterCategory !== "all" && tx.type !== "transfer" && tx.categoryId?.toString() !== filterCategory) return false
       if (filterMonth) {
-        const txMonth = tx.date.slice(0, 7) // YYYY-MM
+        const txMonth = tx.date.slice(0, 7) 
         if (txMonth !== filterMonth) return false
       }
       return true
@@ -92,7 +92,7 @@ export function TransactionPage({ initialTransactions, categories, accounts }: {
     setEditingTx(tx)
     setType(tx.type as "expense" | "income")
     setAmount(tx.amount.toString())
-    setDate(new Date(tx.date).toISOString().slice(0, 10)) // YYYY-MM-DD
+    setDate(new Date(tx.date).toISOString().slice(0, 10)) 
     setCategoryId(tx.categoryId?.toString() || "")
     setAccountId(tx.accountId?.toString() || accounts[0]?.id.toString() || "")
     setDescription(tx.description || "")
@@ -295,7 +295,7 @@ export function TransactionPage({ initialTransactions, categories, accounts }: {
               value={filterType} 
               onChange={e => {
                 setFilterType(e.target.value as "all" | "expense" | "income" | "transfer")
-                setFilterCategory("all") // Reset category filter when type changes
+                setFilterCategory("all") 
               }}
             >
               <option value="all">All Types</option>

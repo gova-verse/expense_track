@@ -37,7 +37,7 @@ const proFeatures = [
 export function UpgradeClient() {
   return (
     <div className="flex flex-col gap-8 p-4 md:p-8 pb-16 max-w-4xl mx-auto w-full">
-      {/* Header */}
+      {}
       <div className="text-center space-y-3">
         <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 px-4 py-1.5 text-sm font-medium text-amber-700 dark:text-amber-400 mx-auto">
           <SparkleIcon className="h-4 w-4" weight="fill" />
@@ -53,9 +53,9 @@ export function UpgradeClient() {
 
       <Separator />
 
-      {/* Plans comparison */}
+      {}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Free Plan */}
+        {}
         <div className="rounded-xl border p-6 space-y-5">
           <div>
             <h3 className="text-xl font-semibold">Free</h3>
@@ -87,7 +87,7 @@ export function UpgradeClient() {
           </Link>
         </div>
 
-        {/* Pro Plan */}
+        {}
         <div className="rounded-xl border-2 border-primary p-6 space-y-5 relative">
           <div className="absolute -top-3 left-6">
             <span className="inline-flex items-center gap-1 rounded-full bg-primary text-primary-foreground px-3 py-0.5 text-xs font-semibold">
@@ -123,7 +123,7 @@ export function UpgradeClient() {
         </div>
       </div>
 
-      {/* Footer note */}
+      {}
       <div className="text-center">
         <p className="text-sm text-muted-foreground">
           Pro payments are coming soon. You&apos;ll be notified when Pro is available.

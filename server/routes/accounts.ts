@@ -7,7 +7,7 @@ import { insertAccountSchema, updateAccountSchema } from '@/lib/validations'
 
 const app = new Hono<{ Variables: { user: any } }>()
 
-// GET /api/accounts
+
 app.get('/', async (c) => {
   const user = c.get('user') as any
   const userId = user.id
@@ -19,7 +19,7 @@ app.get('/', async (c) => {
   return c.json(data)
 })
 
-// GET /api/accounts/with-balance
+
 app.get('/with-balance', async (c) => {
   const user = c.get('user') as any
   const userId = user.id
@@ -47,7 +47,7 @@ app.get('/with-balance', async (c) => {
   return c.json(result)
 })
 
-// POST /api/accounts
+
 app.post('/', zValidator('json', insertAccountSchema), async (c) => {
   const user = c.get('user') as any
   const userId = user.id
@@ -62,7 +62,7 @@ app.post('/', zValidator('json', insertAccountSchema), async (c) => {
   return c.json({ success: true }, 201)
 })
 
-// PUT /api/accounts/:id
+
 app.put('/:id', zValidator('json', updateAccountSchema), async (c) => {
   const user = c.get('user') as any
   const userId = user.id
@@ -91,7 +91,7 @@ app.put('/:id', zValidator('json', updateAccountSchema), async (c) => {
   return c.json({ success: true })
 })
 
-// DELETE /api/accounts/:id
+
 app.delete('/:id', async (c) => {
   const user = c.get('user') as any
   const userId = user.id

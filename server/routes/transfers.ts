@@ -8,7 +8,7 @@ import { checkSufficientBalance, insufficientBalanceError, getAccountBalance } f
 
 const app = new Hono<{ Variables: { user: any } }>()
 
-// GET /api/transfers
+
 app.get('/', async (c) => {
   const user = c.get('user') as any
   const userId = user.id
@@ -28,7 +28,7 @@ app.get('/', async (c) => {
   return c.json(data)
 })
 
-// POST /api/transfers
+
 app.post('/', zValidator('json', insertTransferSchema), async (c) => {
   const user = c.get('user') as any
   const userId = user.id
@@ -52,7 +52,7 @@ app.post('/', zValidator('json', insertTransferSchema), async (c) => {
     return c.json({ success: false, error: 'Destination account not found.' }, 404)
   }
 
-  // Balance check — skips credit card accounts
+  
   const balanceCheck = await checkSufficientBalance(accountId, amount)
   if (!balanceCheck.ok) {
     return c.json({ success: false, error: insufficientBalanceError(balanceCheck.available, balanceCheck.accountName) }, 400)
@@ -72,7 +72,7 @@ app.post('/', zValidator('json', insertTransferSchema), async (c) => {
   return c.json({ success: true }, 201)
 })
 
-// PUT /api/transfers/:id
+
 app.put('/:id', zValidator('json', updateTransferSchema), async (c) => {
   const user = c.get('user') as any
   const userId = user.id
@@ -126,7 +126,7 @@ app.put('/:id', zValidator('json', updateTransferSchema), async (c) => {
     if (existing.accountId === newAccountId) {
       adjustedBalance += parseFloat(existing.amount)
     }
-    // Use the shared check (skips credit accounts)
+    
     const sourceAcc = await db.select().from(accounts).where(eq(accounts.id, newAccountId)).limit(1)
     const isStrict = sourceAcc.length > 0 && ['cash', 'bank', 'wallet', 'savings'].includes(sourceAcc[0].type)
     if (isStrict && adjustedBalance < newAmount) {
@@ -156,7 +156,7 @@ app.put('/:id', zValidator('json', updateTransferSchema), async (c) => {
   return c.json({ success: true })
 })
 
-// DELETE /api/transfers/:id
+
 app.delete('/:id', async (c) => {
   const user = c.get('user') as any
   const userId = user.id

@@ -31,7 +31,7 @@ function getInitials(name: string, email: string): string {
     }
     return parts[0].substring(0, 2).toUpperCase()
   }
-  // Fallback to email
+  
   return email.split("@")[0].substring(0, 2).toUpperCase()
 }
 

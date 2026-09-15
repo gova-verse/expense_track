@@ -42,7 +42,7 @@ export function TransfersClient({ initialTransfers, accounts }: { initialTransfe
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  // Form State
+  
   const [fromAccountId, setFromAccountId] = useState("")
   const [toAccountId, setToAccountId] = useState("")
   const [amount, setAmount] = useState("")

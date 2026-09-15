@@ -28,7 +28,7 @@ export function CategoryPage({ title, type, categories }: { title: string, type:
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   
-  // Form State
+  
   const [name, setName] = useState("")
   const [icon, setIcon] = useState("")
   const [color, setColor] = useState("")

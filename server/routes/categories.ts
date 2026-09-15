@@ -7,8 +7,8 @@ import { insertCategorySchema, updateCategorySchema } from '@/lib/validations'
 
 const app = new Hono<{ Variables: { user: any } }>()
 
-// GET /api/categories          → all categories for the user
-// GET /api/categories?type=expense|income → filtered
+
+
 app.get('/', async (c) => {
   const user = c.get('user') as any
   const userId = user.id
@@ -34,13 +34,13 @@ app.get('/', async (c) => {
   return c.json(data)
 })
 
-// POST /api/categories
+
 app.post('/', zValidator('json', insertCategorySchema), async (c) => {
   const user = c.get('user') as any
   const userId = user.id
   const { name, type, icon, color, isDefault } = c.req.valid('json')
 
-  // Check for duplicate name within the same type
+  
   const existing = await db
     .select()
     .from(categories)
@@ -63,7 +63,7 @@ app.post('/', zValidator('json', insertCategorySchema), async (c) => {
   return c.json({ success: true }, 201)
 })
 
-// PUT /api/categories/:id
+
 app.put('/:id', zValidator('json', updateCategorySchema), async (c) => {
   const user = c.get('user') as any
   const userId = user.id
@@ -83,7 +83,7 @@ app.put('/:id', zValidator('json', updateCategorySchema), async (c) => {
   const type = body.type || existingCategory[0].type
   const name = body.name || existingCategory[0].name
 
-  // Check duplicate
+  
   const duplicate = await db
     .select()
     .from(categories)
@@ -102,7 +102,7 @@ app.put('/:id', zValidator('json', updateCategorySchema), async (c) => {
   return c.json({ success: true })
 })
 
-// DELETE /api/categories/:id
+
 app.delete('/:id', async (c) => {
   const user = c.get('user') as any
   const userId = user.id

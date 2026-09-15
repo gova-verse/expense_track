@@ -52,7 +52,7 @@ export function AccountsClient({ initialAccounts }: { initialAccounts: AccountWi
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  // Form State
+  
   const [name, setName] = useState("")
   type AccountType = "cash" | "bank" | "wallet" | "credit" | "savings"
   const [type, setType] = useState<AccountType>("bank")

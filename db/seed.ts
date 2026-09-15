@@ -12,7 +12,7 @@ const pool = new Pool({
 const db = drizzle(pool, { schema });
 
 const defaultCategories = [
-  // Expenses
+  
   { name: 'Food', type: 'expense' as const, isDefault: true },
   { name: 'Transport', type: 'expense' as const, isDefault: true },
   { name: 'Shopping', type: 'expense' as const, isDefault: true },
@@ -25,7 +25,7 @@ const defaultCategories = [
   { name: 'Personal', type: 'expense' as const, isDefault: true },
   { name: 'Other', type: 'expense' as const, isDefault: true },
   
-  // Income
+  
   { name: 'Salary', type: 'income' as const, isDefault: true },
   { name: 'Freelance', type: 'income' as const, isDefault: true },
   { name: 'Business', type: 'income' as const, isDefault: true },

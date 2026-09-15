@@ -28,7 +28,7 @@ export function PreferencesProvider({
 export function usePreferences() {
   const context = React.useContext(PreferencesContext)
   if (!context) {
-    // Fallbacks if not wrapped
+    
     return {
       currency: "INR",
       numberFormat: "en-IN",
@@ -69,6 +69,6 @@ export function formatDate(date: string | Date, prefs: Preferences) {
     return `${p.year}-${p.month}-${p.day}`
   }
   
-  // Default DD/MM/YYYY
+  
   return `${p.day}/${p.month}/${p.year}`
 }

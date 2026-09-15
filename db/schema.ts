@@ -1,7 +1,7 @@
 import { pgTable, text, varchar, integer, timestamp, boolean, decimal, pgEnum, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-// ── Better Auth Tables ────────────────────────────────────────────
+
 
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
@@ -49,7 +49,7 @@ export const verification = pgTable('verification', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-// ── Application Tables ────────────────────────────────────────────
+
 
 export const userPreferences = pgTable('user_preferences', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -60,7 +60,7 @@ export const userPreferences = pgTable('user_preferences', {
   numberFormat: varchar('number_format', { length: 50 }).default('en-IN').notNull(),
   dateFormat: varchar('date_format', { length: 50 }).default('DD/MM/YYYY').notNull(),
   timezone: varchar('timezone', { length: 100 }).default('Asia/Kolkata').notNull(),
-  // Notification preferences
+  
   notifySecurityAlerts: boolean('notify_security_alerts').default(true).notNull(),
   notifyAccountActivity: boolean('notify_account_activity').default(true).notNull(),
   notifyMonthlySummary: boolean('notify_monthly_summary').default(false).notNull(),
@@ -82,7 +82,7 @@ export const categories = pgTable('categories', {
   icon: varchar('icon', { length: 255 }),
   color: varchar('color', { length: 255 }),
   isDefault: boolean('is_default').default(false).notNull(),
-  userId: text('user_id').references(() => user.id), // Nullable for global defaults
+  userId: text('user_id').references(() => user.id), 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -139,7 +139,7 @@ export const budgets = pgTable('budgets', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// ── Relations ─────────────────────────────────────────────────────
+
 
 export const userRelations = relations(user, ({ one, many }) => ({
   preferences: one(userPreferences, {

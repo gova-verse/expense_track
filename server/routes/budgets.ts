@@ -13,7 +13,7 @@ import {
 
 const app = new Hono<{ Variables: { user: any } }>()
 
-// GET /api/budgets
+
 app.get('/', async (c) => {
   const user = c.get('user') as any
   const userId = user.id
@@ -75,7 +75,7 @@ app.get('/', async (c) => {
   return c.json(results)
 })
 
-// POST /api/budgets
+
 app.post('/', zValidator('json', budgetSchema), async (c) => {
   const user = c.get('user') as any
   const userId = user.id
@@ -108,7 +108,7 @@ app.post('/', zValidator('json', budgetSchema), async (c) => {
   return c.json({ success: true }, 201)
 })
 
-// PUT /api/budgets/:id
+
 app.put('/:id', zValidator('json', budgetSchema), async (c) => {
   const user = c.get('user') as any
   const userId = user.id
@@ -144,7 +144,7 @@ app.put('/:id', zValidator('json', budgetSchema), async (c) => {
   return c.json({ success: true })
 })
 
-// DELETE /api/budgets/:id
+
 app.delete('/:id', async (c) => {
   const user = c.get('user') as any
   const userId = user.id

@@ -1,13 +1,6 @@
-/**
- * Shared Report Export Utilities
- *
- * All exports consume the same AnalyticsData object used by the Reports UI.
- * No separate database queries or calculations are performed.
- *
- * Data flow: Neon → Analytics → Report Data → CSV / PDF / Excel
- */
 
-// ── Types (mirror reports-client.tsx) ───────────────────────────
+
+
 type CategoryStat = {
   categoryId: number | null
   categoryName: string
@@ -42,7 +35,7 @@ export type ExportAnalyticsData = {
 
 import { Preferences, formatCurrency } from "@/components/preferences-provider"
 
-// ── Formatters ──────────────────────────────────────────────────
+
 const fmtPct = (val: number) => `${val.toFixed(2)}%`
 const sanitize = (periodLabel: string) =>
   periodLabel.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")
@@ -107,7 +100,7 @@ export function exportCSV(data: ExportAnalyticsData, periodLabel: string, prefs:
   downloadFile(csvContent, `financial-report-${sanitize(periodLabel)}.csv`, "text/csv;charset=utf-8")
 }
 
-// ── PDF ─────────────────────────────────────────────────────────
+
 export async function exportPDF(data: ExportAnalyticsData, periodLabel: string, prefs: Preferences) {
   const fmt = (val: number) => formatCurrency(val, prefs, { maximumFractionDigits: 2 })
   const { default: jsPDF } = await import("jspdf")
@@ -117,7 +110,7 @@ export async function exportPDF(data: ExportAnalyticsData, periodLabel: string, 
   const c = data.overall.current
   let y = 20
 
-  // Title
+  
   doc.setFontSize(18)
   doc.text("Financial Report", 14, y)
   y += 8
@@ -127,7 +120,7 @@ export async function exportPDF(data: ExportAnalyticsData, periodLabel: string, 
   doc.setTextColor(0)
   y += 12
 
-  // Summary
+  
   doc.setFontSize(14)
   doc.text("Summary", 14, y)
   y += 2
@@ -144,10 +137,10 @@ export async function exportPDF(data: ExportAnalyticsData, periodLabel: string, 
     headStyles: { fillColor: [99, 102, 241] },
     margin: { left: 14 },
   })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   y = (doc as any).lastAutoTable.finalY + 10
 
-  // Income
+  
   doc.setFontSize(14)
   doc.text("Income Analysis", 14, y)
   y += 2
@@ -163,7 +156,7 @@ export async function exportPDF(data: ExportAnalyticsData, periodLabel: string, 
     headStyles: { fillColor: [16, 185, 129] },
     margin: { left: 14 },
   })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   y = (doc as any).lastAutoTable.finalY + 4
 
   if (data.incomeAnalytics.categories.length > 0) {
@@ -177,16 +170,16 @@ export async function exportPDF(data: ExportAnalyticsData, periodLabel: string, 
       headStyles: { fillColor: [16, 185, 129] },
       margin: { left: 14 },
     })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     y = (doc as any).lastAutoTable.finalY + 10
   } else {
     y += 10
   }
 
-  // Check if we need a new page
+  
   if (y > 240) { doc.addPage(); y = 20 }
 
-  // Expenses
+  
   doc.setFontSize(14)
   doc.text("Expense Analysis", 14, y)
   y += 2
@@ -202,7 +195,7 @@ export async function exportPDF(data: ExportAnalyticsData, periodLabel: string, 
     headStyles: { fillColor: [244, 63, 94] },
     margin: { left: 14 },
   })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   y = (doc as any).lastAutoTable.finalY + 4
 
   if (data.expenseAnalytics.categories.length > 0) {
@@ -216,7 +209,7 @@ export async function exportPDF(data: ExportAnalyticsData, periodLabel: string, 
       headStyles: { fillColor: [244, 63, 94] },
       margin: { left: 14 },
     })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
     y = (doc as any).lastAutoTable.finalY + 10
   } else {
     y += 10
@@ -224,7 +217,7 @@ export async function exportPDF(data: ExportAnalyticsData, periodLabel: string, 
 
   if (y > 240) { doc.addPage(); y = 20 }
 
-  // Cash Flow
+  
   doc.setFontSize(14)
   doc.text("Cash Flow", 14, y)
   y += 2
@@ -244,13 +237,13 @@ export async function exportPDF(data: ExportAnalyticsData, periodLabel: string, 
   doc.save(`financial-report-${sanitize(periodLabel)}.pdf`)
 }
 
-// ── Excel ───────────────────────────────────────────────────────
+
 export async function exportExcel(data: ExportAnalyticsData, periodLabel: string, prefs: Preferences) {
   const XLSX = await import("xlsx")
   const c = data.overall.current
   const wb = XLSX.utils.book_new()
 
-  // Summary sheet
+  
   const summaryData = [
     ["Financial Report"],
     ["Period", periodLabel],
@@ -264,7 +257,7 @@ export async function exportExcel(data: ExportAnalyticsData, periodLabel: string
   const ws1 = XLSX.utils.aoa_to_sheet(summaryData)
   XLSX.utils.book_append_sheet(wb, ws1, "Summary")
 
-  // Income sheet
+  
   const incomeData = [
     ["Income Analysis"],
     ["Period", periodLabel],
@@ -281,7 +274,7 @@ export async function exportExcel(data: ExportAnalyticsData, periodLabel: string
   const ws2 = XLSX.utils.aoa_to_sheet(incomeData)
   XLSX.utils.book_append_sheet(wb, ws2, "Income")
 
-  // Expenses sheet
+  
   const expenseData = [
     ["Expense Analysis"],
     ["Period", periodLabel],
@@ -298,7 +291,7 @@ export async function exportExcel(data: ExportAnalyticsData, periodLabel: string
   const ws3 = XLSX.utils.aoa_to_sheet(expenseData)
   XLSX.utils.book_append_sheet(wb, ws3, "Expenses")
 
-  // Categories sheet
+  
   const catData = [
     ["Category Analysis"],
     ["Period", periodLabel],
@@ -311,7 +304,7 @@ export async function exportExcel(data: ExportAnalyticsData, periodLabel: string
   const ws4 = XLSX.utils.aoa_to_sheet(catData)
   XLSX.utils.book_append_sheet(wb, ws4, "Categories")
 
-  // Cash Flow sheet
+  
   const cfData = [
     ["Cash Flow"],
     ["Period", periodLabel],
@@ -327,7 +320,7 @@ export async function exportExcel(data: ExportAnalyticsData, periodLabel: string
   XLSX.writeFile(wb, `financial-report-${sanitize(periodLabel)}.xlsx`)
 }
 
-// ── Helper ──────────────────────────────────────────────────────
+
 function downloadFile(content: string, filename: string, mimeType: string) {
   const blob = new Blob([content], { type: mimeType })
   const url = URL.createObjectURL(blob)

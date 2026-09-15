@@ -3,7 +3,7 @@ import { db } from "@/db"
 import { userPreferences, accounts, categories, transactions, budgets } from "@/db/schema"
 
 export default async function PrivacySettingsPage() {
-  // Fetch all user data for export
+  
   const prefs = await db.select().from(userPreferences)
   const accs = await db.select().from(accounts)
   const cats = await db.select().from(categories)

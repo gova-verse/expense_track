@@ -9,7 +9,7 @@ import { authMiddleware } from './middleware/auth'
 
 const app = new Hono().basePath('/api')
 
-// Apply Better Auth session middleware to all data routes
+
 app.use('/transactions/*', authMiddleware)
 app.use('/accounts/*', authMiddleware)
 app.use('/categories/*', authMiddleware)
@@ -25,7 +25,7 @@ const routes = app
   .route('/settings', settings)
   .route('/transfers', transfers)
 
-// Export the fully-typed app for use with Hono's RPC client (`hono/client`)
+
 export type AppType = typeof routes
 
 export default app

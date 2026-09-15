@@ -13,7 +13,7 @@ export function AppearanceClient({ initialTheme, initialColorTheme }: { initialT
 
   const handleThemeChange = (newTheme: string) => {
     setSelectedTheme(newTheme)
-    setTheme(newTheme) // next-themes handles this instantly
+    setTheme(newTheme) 
 
     startTransition(async () => {
       await fetch('/api/settings/preferences', {
@@ -27,7 +27,7 @@ export function AppearanceClient({ initialTheme, initialColorTheme }: { initialT
   const handleColorThemeChange = (newColorTheme: string) => {
     setSelectedColorTheme(newColorTheme)
 
-    // Instantly update the DOM to prevent lag
+    
     if (newColorTheme === 'default') {
       document.documentElement.removeAttribute('data-theme')
     } else {

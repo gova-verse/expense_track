@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Since auth is not implemented, fetch the first user's preferences, or fallback to defaults
+  
   const prefs = await db.select().from(userPreferences).limit(1);
   const theme = prefs.length > 0 ? prefs[0].theme : 'system';
   const colorTheme = prefs.length > 0 ? prefs[0].colorTheme : 'default';

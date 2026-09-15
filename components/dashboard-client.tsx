@@ -81,13 +81,13 @@ export function DashboardClient({ analytics, recentTransactions }: { analytics: 
   const c = overall.current
   const hasData = c.incomeCount + c.expenseCount > 0
 
-  // Bar chart data for income vs expense
+  
   const barData = [
     { name: "Income", value: c.totalIncome, fill: "#10b981" },
     { name: "Expenses", value: c.totalExpenses, fill: "#f43f5e" },
   ]
 
-  // Pie chart data for expense categories
+  
   const pieData = expenseAnalytics.categories.map((cat, i) => ({
     name: cat.categoryName,
     value: cat.totalSpent,
@@ -96,7 +96,7 @@ export function DashboardClient({ analytics, recentTransactions }: { analytics: 
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 pt-0">
-      {/* Summary Cards */}
+      {}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           title="Total Income"
@@ -126,9 +126,9 @@ export function DashboardClient({ analytics, recentTransactions }: { analytics: 
         />
       </div>
 
-      {/* Charts Row */}
+      {}
       <div className="grid gap-4 md:grid-cols-2">
-        {/* Income vs Expense */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle>Income vs Expenses</CardTitle>
@@ -154,7 +154,7 @@ export function DashboardClient({ analytics, recentTransactions }: { analytics: 
           </CardContent>
         </Card>
 
-        {/* Spending by Category */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle>Spending by Category</CardTitle>
@@ -202,9 +202,9 @@ export function DashboardClient({ analytics, recentTransactions }: { analytics: 
         </Card>
       </div>
 
-      {/* Insights & Recent Transactions Row */}
+      {}
       <div className="grid gap-4 md:grid-cols-2">
-        {/* Top Insights */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle>Top Financial Insights</CardTitle>
@@ -231,7 +231,7 @@ export function DashboardClient({ analytics, recentTransactions }: { analytics: 
           </CardContent>
         </Card>
 
-        {/* Recent Transactions */}
+        {}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
