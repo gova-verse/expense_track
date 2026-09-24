@@ -29,6 +29,13 @@
       "when": 1788855370463,
       "tag": "0003_living_ghost_rider",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789452349146,
+      "tag": "0004_green_justin_hammer",
+      "breakpoints": true
     }
   ]
 }
